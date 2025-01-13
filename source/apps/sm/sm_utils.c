@@ -162,6 +162,7 @@ char* radio_index_to_radio_type_str(unsigned int radio_index)
     radio_type_t radio_type;
 
     radio_type = radio_index_to_dpp_radio_type(radio_index);
+    wifi_util_error_print(WIFI_SM, "SJY %s:%d radio_index=%d radio_type=%d\n",__func__, __LINE__, radio_index, radio_type);
 
     return radio_get_name_from_type(radio_type);
 }
