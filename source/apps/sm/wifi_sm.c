@@ -91,6 +91,16 @@ int neighbor_response(wifi_provider_response_t *provider_response)
     survey_type_t survey_type;
     wifi_neighborScanMode_t halw_scan_type = provider_response->args.scan_mode;
 
+    if (provider_response == NULL) {
+        wifi_util_error_print(WIFI_SM, "SJY %s:%d: provider_response is NULL\r\n", __func__, __LINE__);
+        return RETURN_ERR;
+    }
+
+    if (provider_response->stat_pointer == NULL) {
+        wifi_util_error_print(WIFI_SM, "SJY %s:%d: provider_response->stat_pointer is NULL\r\n", __func__, __LINE__);
+        return RETURN_ERR;
+    }
+
     if (sm_survey_type_conversion(&halw_scan_type, &survey_type, DCA_TO_APP) != RETURN_OK) {
         wifi_util_error_print(WIFI_SM,"%s:%d: failed to convert scan_mode %d to survey_type for radio_index : %d\r\n",
             __func__, __LINE__, provider_response->args.scan_mode, radio_index);
@@ -101,9 +111,20 @@ int neighbor_response(wifi_provider_response_t *provider_response)
 
     wifi_util_dbg_print(WIFI_SM,"%s:%d: radio_index : %d stats_array_size : %d\r\n",__func__, __LINE__, radio_index, provider_response->stat_array_size);
 
-    for (count = 0; count < provider_response->stat_array_size; count++) {
-        wifi_util_dbg_print(WIFI_SM,"%s:%d: count : %d ap_SSID : %s\r\n",__func__, __LINE__, count, neighbor_ap[count].ap_SSID);
-        sm_neighbor_sample_store(radio_index, survey_type, &neighbor_ap[count]);
+    wifi_util_error_print(WIFI_SM, "SJY %s:%d: survey_type : %d\r\n", __func__, __LINE__, survey_type);
+    wifi_util_error_print(WIFI_SM, "SJY %s:%d: survey_type_to_str : %s\r\n", __func__, __LINE__, survey_type_to_str(survey_type));
+    wifi_util_error_print(WIFI_SM, "SJY %s:%d: radio_index : %d\r\n", __func__, __LINE__, radio_index);
+    wifi_util_error_print(WIFI_SM, "SJY %s:%d: radio_type_to_str : %s\r\n", __func__, __LINE__, radio_index_to_radio_type_str(radio_index));
+
+    if (provider_response->stat_array_size == 0) {
+        wifi_util_dbg_print(WIFI_SM, "%s:%d: No neighbor APs found in %s on %s\r\n", __func__,
+            __LINE__, survey_type_to_str(survey_type), radio_index_to_radio_type_str(radio_index));
+    } else {
+        for (count = 0; count < provider_response->stat_array_size; count++) {
+            wifi_util_dbg_print(WIFI_SM, "%s:%d: count : %d ap_SSID : %s\r\n", __func__, __LINE__,
+                count, neighbor_ap[count].ap_SSID);
+            sm_neighbor_sample_store(radio_index, survey_type, &neighbor_ap[count]);
+        }
     }
     return RETURN_OK;
 }
