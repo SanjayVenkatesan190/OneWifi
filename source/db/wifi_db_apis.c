@@ -7098,6 +7098,9 @@ int wifidb_init_global_config_default(wifi_global_param_t *config)
     cfg.whix_chutility_loginterval = 900;
     cfg.rss_memory_restart_threshold_low = 81920;
     cfg.rss_memory_restart_threshold_high = 112640;
+    wifi_util_info_print(WIFI_DB,
+        "%s:%d Default values of RSS memory restart thresholds low:%d and high:%d\n", __func__,
+        __LINE__, cfg.rss_memory_restart_threshold_low, cfg.rss_memory_restart_threshold_high);
     cfg.assoc_monitor_duration = 0;
     cfg.rapid_reconnect_enable = true;
     cfg.vap_stats_feature =  true;

@@ -200,7 +200,7 @@ onewifi_mem_restart() {
     # Get thresholds (in kB)
     threshold1=$(dmcli eRT retv Device.WiFi.WiFiRestart.RSSMemory.Threshold1)
     threshold2=$(dmcli eRT retv Device.WiFi.WiFiRestart.RSSMemory.Threshold2)
-
+    echo_t "Threshold1: $threshold1 kB, Threshold2: $threshold2 kB" >> $LOG_FILE
     now=$(date +%s)
     time_since_last_restart=$((now - onewifi_last_restart))
 
