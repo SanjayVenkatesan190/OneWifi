@@ -201,6 +201,10 @@ onewifi_mem_restart() {
     threshold1=$(dmcli eRT retv Device.WiFi.WiFiRestart.RSSMemory.Threshold1)
     threshold2=$(dmcli eRT retv Device.WiFi.WiFiRestart.RSSMemory.Threshold2)
     echo_t "Threshold1: $threshold1 kB, Threshold2: $threshold2 kB" >> $LOG_FILE
+   if [ -z "$threshold1" ] || [ -z "$threshold2" ] || [ "$threshold1" -le 0 ] || [ "$threshold2" -le 0 ]; then
+        echo_t "Threshold1 or Threshold2 is zero/empty/negative, skipping OneWifi memory restart check" >> $LOG_FILE
+        return
+   fi
     now=$(date +%s)
     time_since_last_restart=$((now - onewifi_last_restart))
 
