@@ -263,6 +263,30 @@ void callback_Wifi_Rfc_Config(ovsdb_update_monitor_t *mon, struct schema_Wifi_Rf
         pthread_mutex_unlock(&g_wifidb->data_cache_lock);
     }
 }
+
+static void wifi_debug_print(const char *format, ...)
+{
+    char buff[256] = { 0 };
+    va_list list;
+    FILE *fpg = NULL;
+
+    get_formatted_time(buff);
+
+    fpg = fopen("/tmp/wifiGlobalConfig", "a+");
+    if (fpg == NULL) {
+        return;
+    }
+
+    fprintf(fpg, "%s ", buff);
+    va_start(list, format);
+    vfprintf(fpg, format, list);
+    va_end(list);
+    fflush(fpg);
+    fclose(fpg);
+
+    return;
+}
+
 /************************************************************************************
  ************************************************************************************
   Function    : callback_Wifi_Radio_Config
@@ -1122,6 +1146,7 @@ void callback_Wifi_Global_Config(ovsdb_update_monitor_t *mon,
         struct schema_Wifi_Global_Config *old_rec,
         struct schema_Wifi_Global_Config *new_rec)
 {
+    wifi_debug_print("SJY Entering %s:%d\n", __func__, __LINE__);
     wifi_mgr_t *g_wifidb;
     g_wifidb = get_wifimgr_obj();
 
@@ -1131,11 +1156,12 @@ void callback_Wifi_Global_Config(ovsdb_update_monitor_t *mon,
     if (mon->mon_type == OVSDB_UPDATE_DEL)
     {
         wifi_util_dbg_print(WIFI_DB,"%s:%d:Delete\n", __func__, __LINE__);
-        wifi_util_info_print(WIFI_DB,"SJY %s:%d: Calling wifidb_init_global_config_default \n", __func__, __LINE__);
+        wifi_debug_print("SJY %s:%d: Calling wifidb_init_global_config_default\n", __func__, __LINE__);
         wifidb_init_global_config_default(&g_wifidb->global_config.global_parameters);
     }
     else if ((mon->mon_type == OVSDB_UPDATE_NEW) || (mon->mon_type == OVSDB_UPDATE_MODIFY))
     {
+        wifi_debug_print("SJY %s:%d: Global New/Modify\n", __func__, __LINE__);
         wifi_util_dbg_print(WIFI_DB,"%s:%d:Global Config New/Modify \n", __func__, __LINE__);
         if(new_rec == NULL)
         {
@@ -1174,6 +1200,9 @@ void callback_Wifi_Global_Config(ovsdb_update_monitor_t *mon,
         g_wifidb->global_config.global_parameters.whix_chutility_loginterval = new_rec->whix_chutility_loginterval;
         g_wifidb->global_config.global_parameters.rss_memory_restart_threshold_low = new_rec->rss_memory_restart_threshold_low;
         g_wifidb->global_config.global_parameters.rss_memory_restart_threshold_high = new_rec->rss_memory_restart_threshold_high;
+        wifi_debug_print("SJY %s:%d: rss_memory_restart_threshold_low=%lu, rss_memory_restart_threshold_high=%lu\n",
+            __func__, __LINE__, g_wifidb->global_config.global_parameters.rss_memory_restart_threshold_low,
+            g_wifidb->global_config.global_parameters.rss_memory_restart_threshold_high);
         g_wifidb->global_config.global_parameters.assoc_monitor_duration = new_rec->assoc_monitor_duration;
         g_wifidb->global_config.global_parameters.rapid_reconnect_enable = new_rec->rapid_reconnect_enable;
         g_wifidb->global_config.global_parameters.vap_stats_feature = new_rec->vap_stats_feature;
@@ -2989,7 +3018,7 @@ int wifidb_update_table_entry(char *key, char *key_name,ovsdb_col_t key_type, ov
 **************************************************************************************/
 int wifidb_update_wifi_global_config(wifi_global_param_t *config)
 {
-    wifi_util_info_print(WIFI_DB,"Entered %s:%d \n",__func__, __LINE__);
+    wifi_debug_print("SJY Entered %s:%d \n",__func__, __LINE__);
     struct schema_Wifi_Global_Config cfg;
     char *filter_global[] = {"-",SCHEMA_COLUMN(Wifi_Global_Config,gas_config),NULL};
     char str[BUFFER_LENGTH_WIFIDB] = {0};
@@ -2999,7 +3028,7 @@ int wifidb_update_wifi_global_config(wifi_global_param_t *config)
         wifidb_print("%s:%d WIFI DB update error !!!. Failed to update Global Config table \n",__func__, __LINE__);
         return -1;
     }
-    wifi_util_info_print(WIFI_DB,"%s:%d: The address of config is %p\n",__func__, __LINE__, config);
+    wifi_debug_print("SJY %s:%d: The address of config is %p\n",__func__, __LINE__, config);
     cfg.notify_wifi_changes = config->notify_wifi_changes;
     cfg.prefer_private = config->prefer_private;
     cfg.prefer_private_configure = config->prefer_private_configure;
@@ -3024,7 +3053,7 @@ int wifidb_update_wifi_global_config(wifi_global_param_t *config)
     cfg.whix_chutility_loginterval = config->whix_chutility_loginterval;
     cfg.rss_memory_restart_threshold_low = config->rss_memory_restart_threshold_low;
     cfg.rss_memory_restart_threshold_high = config->rss_memory_restart_threshold_high;
-    wifi_util_info_print(WIFI_DB,"SJY %s:%d: The value of config->rss_memory_restart_threshold_low is %d and config->rss_memory_restart_threshold_high is %d\n",
+    wifi_debug_print("SJY %s:%d: The value of config->rss_memory_restart_threshold_low is %lu and config->rss_memory_restart_threshold_high is %lu\n",
         __func__, __LINE__, config->rss_memory_restart_threshold_low, config->rss_memory_restart_threshold_high);
     cfg.assoc_monitor_duration = config->assoc_monitor_duration;
     cfg.rapid_reconnect_enable = config->rapid_reconnect_enable;
@@ -3092,17 +3121,19 @@ int wifidb_update_wifi_global_config(wifi_global_param_t *config)
         config->txrx_rate_list, config->mgt_frame_rate_limit_enable, config->mgt_frame_rate_limit,
         config->mgt_frame_rate_limit_window_size, config->mgt_frame_rate_limit_cooldown_time);
 
-    wifi_util_info_print(WIFI_DB,"SJY %s:%d: The value of cfg.rss_memory_restart_threshold_low is %d and cfg.rss_memory_restart_threshold_high is %d\n",
+    wifi_debug_print("SJY %s:%d: The value of cfg.rss_memory_restart_threshold_low is %lu and cfg.rss_memory_restart_threshold_high is %lu\n",
         __func__, __LINE__, cfg.rss_memory_restart_threshold_low, cfg.rss_memory_restart_threshold_high);
-    wifi_util_info_print(WIFI_DB,"SJY %s:%d Calling wifidb_update_table_entry to update Global Config table \n",
+    wifi_debug_print("SJY %s:%d: Calling wifidb_update_table_entry to update Global Config table\n",
         __func__, __LINE__);
     if (wifidb_update_table_entry(NULL,NULL,OCLM_UUID,&table_Wifi_Global_Config,&cfg,filter_global) <= 0)
     {
+        wifi_debug_print("SJY %s:%d: Failed to update Global Config table\n",__func__, __LINE__);
         wifidb_print("%s:%d WIFI DB update error !!!. Failed to update Global Config table \n",__func__, __LINE__);
         return -1;
     }
     else
     {
+        wifi_debug_print("SJY %s:%d: Updated Global Config table successfully\n",__func__, __LINE__);
         wifidb_print("%s:%d Updated WIFI DB. Global Config table updated successful. \n",__func__, __LINE__);
     }
     return 0;
@@ -3117,11 +3148,13 @@ int wifidb_update_wifi_global_config(wifi_global_param_t *config)
 **************************************************************************************/
 int wifidb_get_wifi_global_config(wifi_global_param_t *config)
 {
+    wifi_debug_print("SJY Entered %s:%d \n",__func__, __LINE__);
     struct schema_Wifi_Global_Config *pcfg = NULL;
 
     pcfg = (struct schema_Wifi_Global_Config  *) wifidb_get_table_entry(NULL, NULL,&table_Wifi_Global_Config,OCLM_UUID);
     if (pcfg == NULL) 
     {
+        wifi_debug_print("SJY %s:%d: Failed to get Global Config table\n",__func__, __LINE__);
         wifidb_print("%s:%d Table table_Wifi_Global_Config not found \n",__func__, __LINE__);
         return -1;
     }
@@ -3156,6 +3189,8 @@ int wifidb_get_wifi_global_config(wifi_global_param_t *config)
         config->whix_chutility_loginterval = pcfg->whix_chutility_loginterval;
         config->rss_memory_restart_threshold_low = pcfg->rss_memory_restart_threshold_low;
         config->rss_memory_restart_threshold_high = pcfg->rss_memory_restart_threshold_high;
+        wifi_debug_print("SJY %s:%d: The value of pcfg.rss_memory_restart_threshold_low is %lu and pcfg.rss_memory_restart_threshold_high is %lu\n",
+            __func__, __LINE__, pcfg->rss_memory_restart_threshold_low, pcfg->rss_memory_restart_threshold_high);
         config->assoc_monitor_duration = pcfg->assoc_monitor_duration;
         config->rapid_reconnect_enable = pcfg->rapid_reconnect_enable;
         config->vap_stats_feature = pcfg->vap_stats_feature;
@@ -3614,6 +3649,7 @@ int wifidb_delete_all_connection_ctrl()
 **************************************************************************************/
 int get_wifi_global_param(wifi_global_param_t *config)
 {
+    wifi_debug_print("SJY Entered %s:%d \n",__func__, __LINE__);
     int ret = 0;
     wifi_mgr_t *g_wifidb;
 
@@ -3622,8 +3658,16 @@ int get_wifi_global_param(wifi_global_param_t *config)
         return -1;
     }
     g_wifidb = get_wifimgr_obj();
+    if (g_wifidb == NULL) {
+        wifidb_print("%s:%d Failed to get Global Config - Null pointer \n",__func__, __LINE__);
+        return -1;
+    }
+    
     pthread_mutex_lock(&g_wifidb->data_cache_lock);
     memcpy(config, &g_wifidb->global_config.global_parameters, sizeof(wifi_global_param_t));
+    wifi_debug_print("SJY %s:%d: The value of config.rss_memory_restart_threshold_low and config.rss_memory_restart_threshold_high are %lu and %lu respectively\n",
+        __func__, __LINE__, config->rss_memory_restart_threshold_low, config->rss_memory_restart_threshold_high);
+    wifi_debug_print("SJY %s:%d: The address of config is %p\n", __func__, __LINE__, config);
     pthread_mutex_unlock(&g_wifidb->data_cache_lock);
     return ret;
 }
@@ -3637,9 +3681,16 @@ int get_wifi_global_param(wifi_global_param_t *config)
 **************************************************************************************/
 int get_wifi_global_config(wifi_global_config_t *config)
 {
+    wifi_debug_print("SJY Entered %s:%d \n",__func__, __LINE__);
     int ret = 0;
     wifi_mgr_t *g_wifidb;
     wifi_global_config_t  *global_config = get_wifidb_wifi_global_config();
+
+    if (global_config == NULL) {
+        wifidb_print("%s:%d Failed to get Global Config - Null pointer \n",__func__, __LINE__);
+        return -1;
+    }
+    wifi_debug_print("SJY %s:%d: The address of global_config is %p\n", __func__, __LINE__, global_config);
 
     if (config == NULL) {
         wifidb_print("%s:%d Failed to get Global Config - Null pointer \n",__func__, __LINE__);
@@ -3648,6 +3699,9 @@ int get_wifi_global_config(wifi_global_config_t *config)
     g_wifidb = get_wifimgr_obj();
     pthread_mutex_lock(&g_wifidb->data_cache_lock);
     memcpy(config, global_config, sizeof(wifi_global_config_t));
+    wifi_debug_print("SJY %s:%d: The value of config.rss_memory_restart_threshold_low and config.rss_memory_restart_threshold_high are %lu and %lu respectively\n",
+        __func__, __LINE__, config->rss_memory_restart_threshold_low, config->rss_memory_restart_threshold_high);
+    wifi_debug_print("SJY %s:%d: The address of config is %p\n", __func__, __LINE__, config);
     pthread_mutex_unlock(&g_wifidb->data_cache_lock);
     return ret;
 }
@@ -4415,7 +4469,7 @@ void wifidb_init_rfc_config_default(wifi_rfc_dml_parameters_t *config)
 
 static void wifidb_global_config_upgrade()
 {
-    wifi_util_info_print(WIFI_DB, "Entering %s:%d\n", __func__, __LINE__);
+    wifi_debug_print("SJY Entering %s:%d\n", __func__, __LINE__);
     char *str = NULL;
     char strValue[256] = {0};
     wifi_mgr_t *g_wifidb = get_wifimgr_obj();
@@ -4451,12 +4505,16 @@ static void wifidb_global_config_upgrade()
     }
 
     if (g_wifidb->db_version < ONEWIFI_DB_VERSION_RSS_MEMORY_THRESHOLD_FLAG) {
+        wifi_debug_print("SJY Current Db version is less than ONEWIFI_DB_VERSION_RSS_MEMORY_THRESHOLD_FLAG, upgrading global config\n");
         wifi_util_dbg_print(WIFI_DB, "%s:%d upgrade global config, old db version %d \n", __func__,
             __LINE__, g_wifidb->db_version);
         g_wifidb->global_config.global_parameters.rss_memory_restart_threshold_low =
             RSS_MEM_THRESHOLD1_DEFAULT;
         g_wifidb->global_config.global_parameters.rss_memory_restart_threshold_high =
             RSS_MEM_THRESHOLD2_DEFAULT;
+        wifi_debug_print("SJY RSS Memory Restart Threshold Low: %lu, High: %lu\n",
+            g_wifidb->global_config.global_parameters.rss_memory_restart_threshold_low,
+            g_wifidb->global_config.global_parameters.rss_memory_restart_threshold_high);
     }
 
     if (g_wifidb->db_version < ONEWIFI_DB_VERSION_MGT_FRAME_RATE_LIMIT) {
@@ -7085,7 +7143,7 @@ int wifidb_init_vap_config_default(int vap_index, wifi_vap_info_t *config,
 ********************************************** ****************************************/
 int wifidb_init_global_config_default(wifi_global_param_t *config)
 {
-    wifi_util_info_print(WIFI_DB,"SJY Entering %s:%d\n",__FUNCTION__, __LINE__);
+    wifi_debug_print("SJY Entering %s:%d\n",__FUNCTION__, __LINE__);
     wifi_global_param_t cfg;
     char temp[32], tempBuf[MAX_BUF_SIZE];
     wifi_mgr_t *g_wifidb;
@@ -7107,7 +7165,7 @@ int wifidb_init_global_config_default(wifi_global_param_t *config)
     cfg.whix_chutility_loginterval = 900;
     cfg.rss_memory_restart_threshold_low = 81920;
     cfg.rss_memory_restart_threshold_high = 112640;
-    wifi_util_info_print(WIFI_DB,"SJY %s:%d: The value of cfg.rss_memory_restart_threshold_low and cfg.rss_memory_restart_threshold_high are %d and %d after assigning\n",
+    wifi_debug_print("SJY %s:%d: The default value of cfg.rss_memory_restart_threshold_low and cfg.rss_memory_restart_threshold_high are %lu and %lu after assigning\n",
         __func__, __LINE__, cfg.rss_memory_restart_threshold_low, cfg.rss_memory_restart_threshold_high);
     cfg.assoc_monitor_duration = 0;
     cfg.rapid_reconnect_enable = true;
@@ -7163,8 +7221,8 @@ int wifidb_init_global_config_default(wifi_global_param_t *config)
 
     pthread_mutex_lock(&g_wifidb->data_cache_lock);
     memcpy(config,&cfg,sizeof(cfg));
-    wifi_util_info_print(WIFI_DB,"SJY %s:%d: The address of config is %p\n", __func__, __LINE__, config);
-    wifi_util_info_print(WIFI_DB,"SJY %s:%d: The value of config.rss_memory_restart_threshold_low and config.rss_memory_restart_threshold_high are %d and %d respectively\n",
+    wifi_debug_print("SJY %s:%d: The address of config is %p\n", __func__, __LINE__, config);
+    wifi_debug_print("SJY %s:%d: The value of config.rss_memory_restart_threshold_low and config.rss_memory_restart_threshold_high are %lu and %lu respectively after memcpy\n",
         __func__, __LINE__, config->rss_memory_restart_threshold_low, config->rss_memory_restart_threshold_high);
     pthread_mutex_unlock(&g_wifidb->data_cache_lock);
     return RETURN_OK;
@@ -7296,11 +7354,12 @@ void wifidb_init_default_value()
             memcpy(vapInfo->u.bss_info.bssid, &temp_mac_address[vap_index], sizeof(vapInfo->u.bss_info.bssid));
         }
     }
-    wifi_util_info_print(WIFI_DB,"%s:%d Calling wifidb_init_global_config_default\n",__func__, __LINE__);
+    wifi_debug_print("SJY %s:%d Calling wifidb_init_global_config_default\n",__func__, __LINE__);
     wifidb_init_global_config_default(&g_wifidb->global_config.global_parameters);
     wifidb_reset_macfilter_hashmap();
     wifidb_init_gas_config_default(&g_wifidb->global_config.gas_config);
     wifidb_init_rfc_config_default(&g_wifidb->rfc_dml_parameters);
+    wifi_debug_print("SJY %s:%d Wifi db update with default values completed\n",__func__, __LINE__);
     wifi_util_info_print(WIFI_DB,"%s:%d Wifi db update completed\n",__func__, __LINE__);
 
 }
@@ -7342,7 +7401,7 @@ void init_wifidb_data()
     wifidb_init_default_value();
 
     if ((access(ONEWIFI_FR_REBOOT_FLAG, F_OK) == 0) && (access(ONEWIFI_FR_WIFIDB_RESET_DONE_FLAG, F_OK) != 0)) {
-        wifi_util_info_print(WIFI_DB,"SJY %s:%d Factory Reset detected. Updating wifidb with default values.\n",__func__, __LINE__);
+        wifi_debug_print("SJY %s:%d Factory Reset detected. Updating wifidb with default values.\n",__func__, __LINE__);
         wifidb_update_rfc_config(0, rfc_param);
         get_wifi_country_code_from_bootstrap_json(country_code, COUNTRY_CODE_LEN);
         pthread_mutex_lock(&g_wifidb->data_cache_lock);
@@ -7393,7 +7452,7 @@ void init_wifidb_data()
                 strncpy(g_wifidb->global_config.global_parameters.wifi_region_code, country_code, sizeof(g_wifidb->global_config.global_parameters.wifi_region_code));
             }
         }
-        wifi_util_info_print(WIFI_DB,"SJY %s:%d: Calling wifidb_update_wifi_global_config\n",__func__, __LINE__);
+        wifi_debug_print("SJY %s:%d: Calling wifidb_update_wifi_global_config\n",__func__, __LINE__);
         if (wifidb_update_wifi_global_config(&g_wifidb->global_config.global_parameters) != RETURN_OK) {
             wifi_util_error_print(WIFI_DB,"%s:%d error in updating global config\n", __func__,__LINE__);
             pthread_mutex_unlock(&g_wifidb->data_cache_lock);
@@ -7499,9 +7558,9 @@ void init_wifidb_data()
                 strncpy(g_wifidb->global_config.global_parameters.wifi_region_code, country_code, sizeof(g_wifidb->global_config.global_parameters.wifi_region_code));
             }
         }
-        wifi_util_info_print(WIFI_DB,"SJY %s:%d: Calling wifidb_global_config_upgrade\n",__func__, __LINE__);
+        wifi_debug_print("SJY %s:%d: Calling wifidb_global_config_upgrade\n",__func__, __LINE__);
         wifidb_global_config_upgrade();
-        wifi_util_info_print(WIFI_DB,"SJY %s:%d: Calling wifidb_update_wifi_global_config\n",__func__, __LINE__);
+        wifi_debug_print("SJY %s:%d: Calling wifidb_update_wifi_global_config\n",__func__, __LINE__);
         if (wifidb_update_wifi_global_config(&g_wifidb->global_config.global_parameters) != RETURN_OK) {
             wifi_util_error_print(WIFI_DB,"%s:%d error in updating global config\n", __func__,__LINE__);
             pthread_mutex_unlock(&g_wifidb->data_cache_lock);
