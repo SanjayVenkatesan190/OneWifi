@@ -3665,9 +3665,6 @@ int get_wifi_global_param(wifi_global_param_t *config)
     
     pthread_mutex_lock(&g_wifidb->data_cache_lock);
     memcpy(config, &g_wifidb->global_config.global_parameters, sizeof(wifi_global_param_t));
-    wifi_debug_print("SJY %s:%d: The value of config.rss_memory_restart_threshold_low and config.rss_memory_restart_threshold_high are %lu and %lu respectively\n",
-        __func__, __LINE__, config->rss_memory_restart_threshold_low, config->rss_memory_restart_threshold_high);
-    wifi_debug_print("SJY %s:%d: The address of config is %p\n", __func__, __LINE__, config);
     pthread_mutex_unlock(&g_wifidb->data_cache_lock);
     return ret;
 }
@@ -3690,7 +3687,6 @@ int get_wifi_global_config(wifi_global_config_t *config)
         wifidb_print("%s:%d Failed to get Global Config - Null pointer \n",__func__, __LINE__);
         return -1;
     }
-    wifi_debug_print("SJY %s:%d: The address of global_config is %p\n", __func__, __LINE__, global_config);
 
     if (config == NULL) {
         wifidb_print("%s:%d Failed to get Global Config - Null pointer \n",__func__, __LINE__);
@@ -3699,9 +3695,6 @@ int get_wifi_global_config(wifi_global_config_t *config)
     g_wifidb = get_wifimgr_obj();
     pthread_mutex_lock(&g_wifidb->data_cache_lock);
     memcpy(config, global_config, sizeof(wifi_global_config_t));
-    wifi_debug_print("SJY %s:%d: The value of config.rss_memory_restart_threshold_low and config.rss_memory_restart_threshold_high are %lu and %lu respectively\n",
-        __func__, __LINE__, config->rss_memory_restart_threshold_low, config->rss_memory_restart_threshold_high);
-    wifi_debug_print("SJY %s:%d: The address of config is %p\n", __func__, __LINE__, config);
     pthread_mutex_unlock(&g_wifidb->data_cache_lock);
     return ret;
 }
