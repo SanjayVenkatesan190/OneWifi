@@ -765,7 +765,7 @@ webconfig_error_t encode_wifi_global_config(const wifi_global_param_t *global_in
     cJSON_AddBoolToObject(global_obj, "ValidateSsid", (const cJSON_bool) global_info->validate_ssid);
 
     // DeviceNetworkMode
-    // cJSON_AddNumberToObject(global_obj, "DeviceNetworkMode", global_info->device_network_mode);
+    cJSON_AddNumberToObject(global_obj, "DeviceNetworkMode", global_info->device_network_mode);
 
     //Normalized_Rssi_List
     cJSON_AddStringToObject(global_obj, "NormalizedRssiList", global_info->normalized_rssi_list);

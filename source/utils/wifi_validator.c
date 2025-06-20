@@ -1795,8 +1795,8 @@ int validate_wifi_global_config(const cJSON *global_cfg, wifi_global_param_t *gl
     global_info->validate_ssid = (param->type & cJSON_True) ? true:false;
 
     // DeviceNetworkMode
-    /*validate_param_integer(global_cfg, "DeviceNetworkMode", param);
-    global_info->device_network_mode = param->valuedouble; */
+    validate_param_integer(global_cfg, "DeviceNetworkMode", param);
+    global_info->device_network_mode = param->valuedouble;
 
     //NormalizedRssiList
     validate_param_string(global_cfg, "NormalizedRssiList", param);

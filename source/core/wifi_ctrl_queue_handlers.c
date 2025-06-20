@@ -2454,13 +2454,13 @@ void process_device_mode_command_event(int device_mode)
 {
     // wifi_global_param_t *global_param = get_wifidb_wifi_global_param();
     wifi_ctrl_t *ctrl = (wifi_ctrl_t *)get_wifictrl_obj();
-
+    wifi_global_param_t *global_param = get_wifidb_wifi_global_param();
     wifi_util_info_print(WIFI_CTRL, "%s:%d: device mode changed: %d\n", __func__, __LINE__,
         device_mode);
 
     ctrl->network_mode = device_mode;
 
-   /* if (global_param->device_network_mode != device_mode) {
+   if (global_param->device_network_mode != device_mode) {
         global_param->device_network_mode = device_mode;
         update_wifi_global_config(global_param);
         update_wifi_vap_config(device_mode);
@@ -2480,7 +2480,7 @@ void process_device_mode_command_event(int device_mode)
             start_gateway_vaps();
         }
     }
-    ctrl->webconfig_state |= ctrl_webconfig_state_vap_all_cfg_rsp_pending; */
+    ctrl->webconfig_state |= ctrl_webconfig_state_vap_all_cfg_rsp_pending; 
 }
 
 void process_sta_trigger_disconnection(unsigned int disconnection_type)

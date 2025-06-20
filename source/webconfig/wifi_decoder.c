@@ -2401,8 +2401,8 @@ webconfig_error_t decode_wifi_global_config(const cJSON *global_cfg, wifi_global
     global_info->validate_ssid = (param->type & cJSON_True) ? true:false;
 
     // DeviceNetworkMode
-    /*decode_param_integer(global_cfg, "DeviceNetworkMode", param);
-    global_info->device_network_mode = param->valuedouble; */
+    decode_param_integer(global_cfg, "DeviceNetworkMode", param);
+    global_info->device_network_mode = param->valuedouble;
 
     //NormalizedRssiList
     decode_param_string(global_cfg, "NormalizedRssiList", param);
