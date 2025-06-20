@@ -2460,7 +2460,7 @@ void process_device_mode_command_event(int device_mode)
 
     ctrl->network_mode = device_mode;
 
-    if (global_param->device_network_mode != device_mode) {
+   /* if (global_param->device_network_mode != device_mode) {
         global_param->device_network_mode = device_mode;
         update_wifi_global_config(global_param);
         update_wifi_vap_config(device_mode);
@@ -2480,7 +2480,7 @@ void process_device_mode_command_event(int device_mode)
             start_gateway_vaps();
         }
     }
-    ctrl->webconfig_state |= ctrl_webconfig_state_vap_all_cfg_rsp_pending;
+    ctrl->webconfig_state |= ctrl_webconfig_state_vap_all_cfg_rsp_pending; */
 }
 
 void process_sta_trigger_disconnection(unsigned int disconnection_type)

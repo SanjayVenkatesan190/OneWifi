@@ -1185,7 +1185,7 @@ void callback_Wifi_Global_Config(ovsdb_update_monitor_t *mon,
         }
         g_wifidb->global_config.global_parameters.diagnostic_enable = new_rec->diagnostic_enable;
         g_wifidb->global_config.global_parameters.validate_ssid = new_rec->validate_ssid;
-        g_wifidb->global_config.global_parameters.device_network_mode = new_rec->device_network_mode;
+        //g_wifidb->global_config.global_parameters.device_network_mode = new_rec->device_network_mode;
         if (strlen(new_rec->normalized_rssi_list) != 0) {
             strncpy(g_wifidb->global_config.global_parameters.normalized_rssi_list,new_rec->normalized_rssi_list,sizeof(g_wifidb->global_config.global_parameters.normalized_rssi_list)-1);
             g_wifidb->global_config.global_parameters.normalized_rssi_list[sizeof(g_wifidb->global_config.global_parameters.normalized_rssi_list)-1] = '\0';
@@ -1224,7 +1224,7 @@ void callback_Wifi_Global_Config(ovsdb_update_monitor_t *mon,
             "rss_memory_restart_threshold_high %lu assoc_monitor_duration %d "
             "rapid_reconnect_enable %d vap_stats_feature %d mfp_config_feature %d "
             "force_disable_radio_feature %d force_disable_radio_status %d fixed_wmm_params %d "
-            "wifi_region_code %s diagnostic_enable %d validate_ssid %d device_network_mode %d "
+            "wifi_region_code %s diagnostic_enable %d validate_ssid %d "
             "normalized_rssi_list %s snr_list %s cli_stat_list %s txrx_rate_list %s "
             "mgt_frame_rate_limit_enable %d mgt_frame_rate_limit %d mgt_frame_window_size %d"
             "mgt_frame_cooldown_time %d\n",
@@ -1242,7 +1242,7 @@ void callback_Wifi_Global_Config(ovsdb_update_monitor_t *mon,
             new_rec->vap_stats_feature, new_rec->mfp_config_feature,
             new_rec->force_disable_radio_feature, new_rec->force_disable_radio_status,
             new_rec->fixed_wmm_params, new_rec->wifi_region_code, new_rec->diagnostic_enable,
-            new_rec->validate_ssid, new_rec->device_network_mode, new_rec->normalized_rssi_list,
+            new_rec->validate_ssid, new_rec->normalized_rssi_list,
             new_rec->snr_list, new_rec->cli_stat_list, new_rec->txrx_rate_list,
             new_rec->mgt_frame_rate_limit_enable, new_rec->mgt_frame_rate_limit,
             new_rec->mgt_frame_rate_limit_window_size, new_rec->mgt_frame_rate_limit_cooldown_time);
@@ -3032,7 +3032,6 @@ int wifidb_update_wifi_global_config(wifi_global_param_t *config)
     strncpy(cfg.wifi_region_code,config->wifi_region_code,sizeof(cfg.wifi_region_code)-1);
     cfg.diagnostic_enable = config->diagnostic_enable;
     cfg.validate_ssid = config->validate_ssid;
-    cfg.device_network_mode = config->device_network_mode;
 
     strncpy(cfg.normalized_rssi_list,config->normalized_rssi_list,sizeof(cfg.normalized_rssi_list)-1);
     cfg.normalized_rssi_list[sizeof(cfg.normalized_rssi_list)-1] = '\0';
@@ -3069,7 +3068,7 @@ int wifidb_update_wifi_global_config(wifi_global_param_t *config)
         "%d assoc_monitor_duration %d rapid_reconnect_enable %d vap_stats_feature %d "
         "mfp_config_feature %d force_disable_radio_feature %d force_disable_radio_status %d "
         "fixed_wmm_params %d wifi_region_code %s diagnostic_enable %d validate_ssid %d "
-        "device_network_mode:%d normalized_rssi_list %s snr_list %s cli_stat_list %s "
+        "normalized_rssi_list %s snr_list %s cli_stat_list %s "
         "txrx_rate_list %s mgt_frame_rate_limit_enable %d mgt_frame_rate_limit %d "
         "mgt_frame_rate_limit_window_size %d mgt_frame_rate_limit_cooldown_time %d\n",
         __func__, __LINE__, config->notify_wifi_changes, config->prefer_private,
@@ -3083,7 +3082,7 @@ int wifidb_update_wifi_global_config(wifi_global_param_t *config)
         config->assoc_monitor_duration, config->rapid_reconnect_enable, config->vap_stats_feature,
         config->mfp_config_feature, config->force_disable_radio_feature,
         config->force_disable_radio_status, config->fixed_wmm_params, config->wifi_region_code,
-        config->diagnostic_enable, config->validate_ssid, config->device_network_mode,
+        config->diagnostic_enable, config->validate_ssid, 
         config->normalized_rssi_list, config->snr_list, config->cli_stat_list,
         config->txrx_rate_list, config->mgt_frame_rate_limit_enable, config->mgt_frame_rate_limit,
         config->mgt_frame_rate_limit_window_size, config->mgt_frame_rate_limit_cooldown_time);
@@ -3161,7 +3160,7 @@ int wifidb_get_wifi_global_config(wifi_global_param_t *config)
         }
         config->diagnostic_enable = pcfg->diagnostic_enable;
         config->validate_ssid = pcfg->validate_ssid;
-        config->device_network_mode = pcfg->device_network_mode;
+        //config->device_network_mode = pcfg->device_network_mode;
         if (strlen(pcfg->normalized_rssi_list) != 0) {
             strncpy(config->normalized_rssi_list,pcfg->normalized_rssi_list,sizeof(config->normalized_rssi_list)-1);
             config->normalized_rssi_list[sizeof(config->normalized_rssi_list)-1] = '\0';
@@ -3195,7 +3194,7 @@ int wifidb_get_wifi_global_config(wifi_global_param_t *config)
             "assoc_gate_time %d assoc_monitor_duration %d rapid_reconnect_enable %d "
             "vap_stats_feature %d mfp_config_feature %d force_disable_radio_feature %d "
             "force_disable_radio_status %d fixed_wmm_params %d wifi_region_code %s "
-            "diagnostic_enable %d validate_ssid %d device_network_mode:%d normalized_rssi_list %s "
+            "diagnostic_enable %d validate_ssid %d normalized_rssi_list %s "
             "snr list %s txrx_rate_list %s cli_stat_list %s mgt_frame_rate_limit_enable %d"
             "mgt_frame_rate_limit %d mgt_frame_rate_limit_window_size %d "
             "mgt_frame_rate_limit_cooldown_time %d\n",
@@ -3211,7 +3210,7 @@ int wifidb_get_wifi_global_config(wifi_global_param_t *config)
             config->vap_stats_feature, config->mfp_config_feature,
             config->force_disable_radio_feature, config->force_disable_radio_status,
             config->fixed_wmm_params, config->wifi_region_code, config->diagnostic_enable,
-            config->validate_ssid, config->device_network_mode, config->normalized_rssi_list,
+            config->validate_ssid, config->normalized_rssi_list,
             config->snr_list, config->txrx_rate_list, config->cli_stat_list,
             config->mgt_frame_rate_limit_enable, config->mgt_frame_rate_limit,
             config->mgt_frame_rate_limit_window_size, config->mgt_frame_rate_limit_cooldown_time);

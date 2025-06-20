@@ -688,10 +688,6 @@ void bus_get_vap_init_parameter(const char *name, unsigned int *ret_val)
 
         *ret_val = data.raw_data.u32;
         ctrl->network_mode = (unsigned int)*ret_val;
-        if (global_param.device_network_mode != (int)*ret_val) {
-            global_param.device_network_mode = (int)*ret_val;
-            update_wifi_global_config(&global_param);
-        }
     } else if (strcmp(name, WIFI_DEVICE_TUNNEL_STATUS) == 0) {
         if (data.data_type != bus_data_type_string) {
             wifi_util_error_print(WIFI_CTRL,
