@@ -7451,8 +7451,10 @@ void init_wifidb_data()
         remove_onewifi_factory_reset_reboot_flag();
         create_onewifi_fr_wifidb_reset_done_flag();
         wifi_util_info_print(WIFI_DB,"%s:%d FactoryReset done. wifidb updated with default values.\n",__func__, __LINE__);
+        dbwritten = true;
     }
     else {
+        dbwritten = true;
         if (wifidb_get_rfc_config(0,rfc_param) != 0) {
             wifi_util_error_print(WIFI_DB,"%s:%d: Error getting RFC config\n",__func__, __LINE__);
         }
@@ -7556,7 +7558,6 @@ void init_wifidb_data()
 
     wifi_util_info_print(WIFI_DB,"%s:%d Wifi data init complete\n",__func__, __LINE__);
     db_param_init = true;
-    dbwritten = true;
 }
 
 /************************************************************************************
@@ -8809,6 +8810,7 @@ int get_wifi_last_reboot_reason_psm_value(char *last_reboot_reason)
 
 int get_all_param_from_psm_and_set_into_db(void)
 {
+    wifi_util_info_print(WIFI_MGR, "SJY Entered %s:%d \n", __func__, __LINE__);
     char inactive_firmware[64] = { 0 };
     wifi_util_info_print(WIFI_MGR, "%s \n", __func__);
     /*      check for psm-db(Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WiFi-PSM-DB.Enable) and
@@ -8823,7 +8825,7 @@ int get_all_param_from_psm_and_set_into_db(void)
         bool wifi_psm_db_enabled = false;
         char last_reboot_reason[32];
         raw_data_t data;
-
+        wifi_util_info_print(WIFI_MGR, "SJY %s: Enters if the condition \n", __func__);
         memset(&data, 0, sizeof(raw_data_t));
         memset(last_reboot_reason, 0, sizeof(last_reboot_reason));
 
@@ -8911,11 +8913,13 @@ int get_all_param_from_psm_and_set_into_db(void)
         if ((strncmp(last_reboot_reason, "factory-reset", strlen("factory-reset")) == 0) ||
             (strncmp(last_reboot_reason, "WPS-Factory-Reset", strlen("WPS-Factory-Reset")) == 0) ||
             (strncmp(last_reboot_reason, "CM_variant_change", strlen("CM_variant_change")) == 0)) {
+            wifi_util_info_print(WIFI_MGR, "%s factory reset flag is created \n", __func__);
             create_onewifi_factory_reset_flag();
             create_onewifi_factory_reset_reboot_flag();
             wifi_util_info_print(WIFI_MGR, "%s FactoryReset is done \n", __func__);
         }
     }
+    wifi_util_info_print(WIFI_MGR, "SJY %s comes to else of if condition of device type \n", __func__);
 
     get_wifidb_obj()->desc.init_data_fn();
 

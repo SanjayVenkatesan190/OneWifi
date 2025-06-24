@@ -1921,6 +1921,7 @@ void process_assoc_device_event(void *data)
 
 void process_factory_reset_command(bool type)
 {
+    wifi_util_info_print(WIFI_CTRL, "SJY %s:%d Entered with type %d\n", __func__, __LINE__, type);
     wifi_mgr_t *p_wifi_mgr = get_wifimgr_obj();
     p_wifi_mgr->ctrl.factory_reset = type;
     wifi_util_info_print(WIFI_CTRL,"%s:%d and type is %d\n",__func__,__LINE__,type);
@@ -1932,18 +1933,27 @@ void process_factory_reset_command(bool type)
     } else {
         system("killall -9 wifidb-server");
     }
+    wifi_util_info_print(WIFI_DB,"SJY %s:%d WIFI Factory reset removing wifidb server rdkb-wifi.db\n", __func__, __LINE__);
     system("rm -f /nvram/wifi/rdkb-wifi.db");
     system("rm -f /opt/secure/wifi/rdkb-wifi.db");
+    if (access("/opt/secure/wifi/rdkb-wifi.db", F_OK) == 0) {
+        wifi_util_error_print(WIFI_DB, "SJY %s:%d: Failed to remove /opt/secure/wifi/rdkb-wifi.db\n",
+            __func__, __LINE__);
+    } else {
+        wifi_util_dbg_print(WIFI_DB, "SJY %s:%d: /opt/secure/wifi/rdkb-wifi.db successfully removed\n",
+            __func__, __LINE__);
+    }
+    wifi_util_dbg_print(WIFI_DB,"SJY %s:%d WIFI Factory reset removed rdkb-wifi.db\n", __func__, __LINE__);
     get_wifidb_obj()->desc.cleanup_fn();
     if (!db_consolidated) {
         get_wifidb_obj()->desc.start_wifidb_fn();
     }
-    wifi_util_dbg_print(WIFI_DB,"WIFI Factory reset started wifi db %d\n",__LINE__);
+    wifi_util_info_print(WIFI_DB,"SJY WIFI Factory reset started wifi db %d\n",__LINE__);
     get_wifidb_obj()->desc.init_tables_fn();
     get_wifidb_obj()->desc.init_default_value_fn();
-    wifi_util_dbg_print(WIFI_DB,"WIFI Factory reset initiated default value %d\n",__LINE__);
+    wifi_util_dbg_print(WIFI_DB,"SJY WIFI Factory reset initiated default value %d\n",__LINE__);
     start_wifi_services();
-    wifi_util_dbg_print(WIFI_DB,"WIFI Factory reset started wifidb monitor %d\n",__LINE__);
+    wifi_util_info_print(WIFI_DB,"SJY WIFI Factory reset started wifidb monitor %d\n",__LINE__);
     get_wifidb_obj()->desc.start_monitor_fn();
     p_wifi_mgr->ctrl.webconfig_state |= ctrl_webconfig_state_factoryreset_cfg_rsp_pending;
 }
