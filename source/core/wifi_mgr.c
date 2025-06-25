@@ -232,6 +232,18 @@ bool is_device_type_vbvxer5(void)
     return is_supported_gateway_device("VTER11QEL");
 }
 
+bool is_device_type_xle(void)
+{
+    bool is_xle = false;
+    wifi_util_info_print(WIFI_MGR,"SJY %s: Checking for XLE device type\n", __func__);
+    is_xle = is_supported_gateway_device("WNXL11BWL");
+    if (is_xle) {
+        wifi_util_info_print(WIFI_MGR,"SJY %s: XLE device type detected\n", __func__);
+    } else {
+        wifi_util_info_print(WIFI_MGR,"SJY %s: Not an XLE device type\n", __func__);
+    }
+    return is_xle;
+}
 
 int init_wifimgr()
 {

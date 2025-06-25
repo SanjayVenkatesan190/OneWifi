@@ -8865,11 +8865,11 @@ int get_all_param_from_psm_and_set_into_db(void)
     if (is_device_type_xb7() == true || is_device_type_xb8() == true ||
         is_device_type_vbvxb10() == true || is_device_type_sercommxb10() == true ||
         is_device_type_scxer10() == true || is_device_type_sr213() == true ||
-        is_device_type_cmxb7() == true || is_device_type_cbr2() == true || is_device_type_vbvxer5() == true) {
+        is_device_type_cmxb7() == true || is_device_type_cbr2() == true || is_device_type_vbvxer5() == true || is_device_type_xle() == true) {
         bool wifi_psm_db_enabled = false;
         char last_reboot_reason[32];
         raw_data_t data;
-        wifi_util_info_print(WIFI_MGR, "SJY %s: Enters if the condition \n", __func__);
+        wifi_util_info_print(WIFI_MGR, "SJY %s: Enters if the condition of device type \n", __func__);
         memset(&data, 0, sizeof(raw_data_t));
         memset(last_reboot_reason, 0, sizeof(last_reboot_reason));
 
