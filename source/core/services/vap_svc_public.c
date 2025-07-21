@@ -346,9 +346,8 @@ int update_xfinity_acl_entries(char *tgt_vap_name)
                 }
                 acl_entry = hash_map_get_next(rdk_vap_info->acl_map, acl_entry);
                 acl_count++;
-                }
-            rdk_vap_info->is_mac_filter_initialized = true;
             }
+            rdk_vap_info->is_mac_filter_initialized = true;
         }
     }
     wifi_util_info_print(WIFI_CTRL, "SJY %s:%d Exiting \n", __func__, __LINE__);
