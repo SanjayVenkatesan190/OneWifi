@@ -1205,14 +1205,11 @@ static int push_blob_data(webconfig_subdoc_data_t *data, webconfig_subdoc_type_t
     push_event_to_ctrl_queue(str, strlen(str), wifi_event_type_webconfig, wifi_event_webconfig_set_data_webconfig, NULL);
     bool ret_value = hotspot_cfg_sem_wait_duration(MAX_HOTSPOT_BLOB_SET_TIMEOUT);
     if (ret_value == false) {
-        execRetVal->ErrorCode = BLOB_EXECUTION_TIMEDOUT;
-        strncpy(execRetVal->ErrorMsg, "subdoc apply is failed", sizeof(execRetVal->ErrorMsg) - 1);
         wifi_util_error_print(WIFI_CTRL, "%s:%d WebConfig blob apply is failed:%s\n", __func__,
             __LINE__, execRetVal->ErrorMsg);
     } else {
         wifi_util_info_print(WIFI_CTRL, "%s:%d WebConfig blob is applied success\n", __func__,
             __LINE__);
-        execRetVal->ErrorCode = BLOB_EXEC_SUCCESS;
     }
     webconfig_data_free(data);
 
