@@ -1206,7 +1206,7 @@ static int push_blob_data(webconfig_subdoc_data_t *data, webconfig_subdoc_type_t
     bool ret_value = hotspot_cfg_sem_wait_duration(MAX_HOTSPOT_BLOB_SET_TIMEOUT);
     if (ret_value == false) {
         wifi_util_error_print(WIFI_CTRL, "%s:%d WebConfig blob apply is failed:%s\n", __func__,
-            __LINE__, execRetVal->ErrorMsg);
+            __LINE__);
     } else {
         wifi_util_info_print(WIFI_CTRL, "%s:%d WebConfig blob is applied success\n", __func__,
             __LINE__);
