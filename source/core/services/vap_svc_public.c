@@ -296,18 +296,19 @@ int vap_svc_public_update(vap_svc_t *svc, unsigned int radio_index, wifi_vap_inf
      free(p_tgt_created_vap_map);
      return 0;
 }
-int update_xfinity_acl_entries(char* tgt_vap_name)
+int update_xfinity_acl_entries(char *tgt_vap_name)
 {
-    wifi_util_info_print(WIFI_CTRL,"SJY Entering %s:%d tgt_vap_name:%s\n",__func__,__LINE__,tgt_vap_name);
+    wifi_util_info_print(WIFI_CTRL, "SJY Entering %s:%d tgt_vap_name:%s\n", __func__, __LINE__,
+        tgt_vap_name);
     mac_addr_str_t mac_str;
     mac_address_t acl_device_mac;
     acl_entry_t *acl_entry;
-    uint8_t itr = 0,itrj = 0, vap_index = 0, acl_count= 0;
+    uint8_t itr = 0, itrj = 0, vap_index = 0, acl_count = 0;
 
     rdk_wifi_vap_info_t *rdk_vap_info = NULL;
     wifi_vap_info_map_t *wifi_vap_map = NULL;
 
-    wifi_util_dbg_print(WIFI_CTRL,"Enter %s tgt_vap_name=%s \n",__func__,tgt_vap_name);
+    wifi_util_dbg_print(WIFI_CTRL, "Enter %s tgt_vap_name=%s \n", __func__, tgt_vap_name);
     for (itr = 0; itr < getNumberRadios(); itr++) {
         wifi_vap_map = (wifi_vap_info_map_t *)get_wifidb_vap_map(itr);
         for (itrj = 0; itrj < getMaxNumberVAPsPerRadio(itr); itrj++) {
@@ -350,7 +351,7 @@ int update_xfinity_acl_entries(char* tgt_vap_name)
             }
         }
     }
-    wifi_util_info_print(WIFI_CTRL,"SJY %s:%d Exiting \n",__func__,__LINE__);
+    wifi_util_info_print(WIFI_CTRL, "SJY %s:%d Exiting \n", __func__, __LINE__);
     return RETURN_OK;
 }
 
