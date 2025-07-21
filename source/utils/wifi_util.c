@@ -3801,7 +3801,7 @@ int scan_mode_type_conversion(wifi_neighborScanMode_t *scan_mode_enum, char *sca
     return RETURN_ERR;
 }
 
-static bool is_interworking_config_changed(char *vap_name, wifi_interworking_t *old_cfg,
+/*static bool is_interworking_config_changed(char *vap_name, wifi_interworking_t *old_cfg,
     wifi_interworking_t *new_cfg)
 {
     bool is_hotspot_vap = FALSE;
@@ -3850,6 +3850,7 @@ static bool is_vap_preassoc_cac_config_changed(char *vap_name,
         return false;
     }
 }
+*/
 
 bool is_vap_param_config_changed(wifi_vap_info_t *vap_info_old, wifi_vap_info_t *vap_info_new,
     rdk_wifi_vap_info_t *rdk_old, rdk_wifi_vap_info_t *rdk_new, bool isSta)
