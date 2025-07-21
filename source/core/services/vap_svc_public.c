@@ -163,6 +163,7 @@ int update_managementFramePower(void *arg) {
 int vap_svc_public_update(vap_svc_t *svc, unsigned int radio_index, wifi_vap_info_map_t *map,
     rdk_wifi_vap_info_t *rdk_vap_info)
 {
+    wifi_util_info_print(WIFI_CTRL, "SJY Entering %s:%d\n", __func__, __LINE__);
     bool enabled;
     unsigned int i;
     wifi_vap_info_map_t *p_tgt_vap_map, *p_tgt_created_vap_map;
@@ -232,11 +233,15 @@ int vap_svc_public_update(vap_svc_t *svc, unsigned int radio_index, wifi_vap_inf
             wifi_util_info_print(WIFI_CTRL, "%s:%d 6g supported device  %s is enabled  nbrReport is activated\n", __func__,__LINE__,p_tgt_vap_map->vap_array[0].vap_name);
             p_tgt_vap_map->vap_array[0].u.bss_info.nbrReportActivated = true;
         }
+        wifi_util_info_print(WIFI_CTRL,"SJY %s:%d: Calling wifi_hal_createVAP for radio_index:%d vap_index:%d enabled:%d greylist_rfc:%d\n",
+                                                __FUNCTION__,__LINE__,radio_index, map->vap_array[i].vap_index,enabled,greylist_rfc);
+
         if (wifi_hal_createVAP(radio_index, p_tgt_vap_map) != RETURN_OK) {
             wifi_util_error_print(WIFI_CTRL,"%s: wifi vap create failure: radio_index:%d vap_index:%d\n",__FUNCTION__,
                                                 radio_index, map->vap_array[i].vap_index);
             continue;
         }
+        wifi_util_info_print(WIFI_CTRL,"SJY %s: wifi hal create vap is done\n",__FUNCTION__);
         p_tgt_vap_map->vap_array[0].u.bss_info.enabled = enabled;
         if (greylist_rfc || ((pcfg != NULL && pcfg->prefer_private))) {
 #ifdef NL80211_ACL
@@ -263,7 +268,7 @@ int vap_svc_public_update(vap_svc_t *svc, unsigned int radio_index, wifi_vap_inf
                    p_tgt_vap_map->vap_array[0].u.bss_info.interworking.passpoint.enable = true;
                 }
         }
-        wifi_util_error_print(WIFI_CTRL,"%s: p_tgt_vap_map->passpoint.enable %d\n", __FUNCTION__,p_tgt_vap_map->vap_array[0].u.bss_info.interworking.passpoint.enable);
+        wifi_util_error_print(WIFI_CTRL,"SJY %s: p_tgt_vap_map->passpoint.enable %d\n", __FUNCTION__,p_tgt_vap_map->vap_array[0].u.bss_info.interworking.passpoint.enable);
         memcpy((unsigned char *)&map->vap_array[i], (unsigned char *)&p_tgt_vap_map->vap_array[0],
                     sizeof(wifi_vap_info_t));
         memcpy((unsigned char *)&p_tgt_created_vap_map->vap_array[i], (unsigned char *)&p_tgt_vap_map->vap_array[0], sizeof(wifi_vap_info_t));
@@ -283,13 +288,17 @@ int vap_svc_public_update(vap_svc_t *svc, unsigned int radio_index, wifi_vap_inf
     }
      update_global_cache(p_tgt_created_vap_map, rdk_vap_info);
     //Load all the Acl entries related to the created public vaps
-    update_xfinity_acl_entries(p_tgt_vap_map->vap_array[0].vap_name);
-    free(p_tgt_vap_map);
-    free(p_tgt_created_vap_map);
-    return 0;
+    wifi_util_info_print(WIFI_CTRL,
+         "SJY %s:%d: Calling update_xfinity_acl_entries for vap_name:%s\n", __FUNCTION__, __LINE__,
+         p_tgt_vap_map->vap_array[0].vap_name);
+     update_xfinity_acl_entries(p_tgt_vap_map->vap_array[0].vap_name);
+     free(p_tgt_vap_map);
+     free(p_tgt_created_vap_map);
+     return 0;
 }
 int update_xfinity_acl_entries(char* tgt_vap_name)
 {
+    wifi_util_info_print(WIFI_CTRL,"SJY Entering %s:%d tgt_vap_name:%s\n",__func__,__LINE__,tgt_vap_name);
     mac_addr_str_t mac_str;
     mac_address_t acl_device_mac;
     acl_entry_t *acl_entry;
@@ -300,42 +309,48 @@ int update_xfinity_acl_entries(char* tgt_vap_name)
 
     wifi_util_dbg_print(WIFI_CTRL,"Enter %s tgt_vap_name=%s \n",__func__,tgt_vap_name);
     for (itr = 0; itr < getNumberRadios(); itr++) {
-        wifi_vap_map =(wifi_vap_info_map_t *) get_wifidb_vap_map(itr);
+        wifi_vap_map = (wifi_vap_info_map_t *)get_wifidb_vap_map(itr);
         for (itrj = 0; itrj < getMaxNumberVAPsPerRadio(itr); itrj++) {
             vap_index = wifi_vap_map->vap_array[itrj].vap_index;
             rdk_vap_info = get_wifidb_rdk_vap_info(vap_index);
 
             if (rdk_vap_info == NULL) {
-                 return -1;
+                return -1;
             }
 
-           if ((strcmp(rdk_vap_info->vap_name,tgt_vap_name) != 0 )) {
+            if ((strcmp(rdk_vap_info->vap_name, tgt_vap_name) != 0)) {
                 continue;
             }
 #ifdef NL80211_ACL
-	   wifi_hal_delApAclDevices(vap_index);
+            wifi_hal_delApAclDevices(vap_index);
 #else
-	   wifi_delApAclDevices(vap_index);
+            wifi_delApAclDevices(vap_index);
 #endif
 
             acl_entry = hash_map_get_first(rdk_vap_info->acl_map);
-            while(acl_entry != NULL && acl_count < MAX_ACL_COUNT ) {
-                memcpy(&acl_device_mac,&acl_entry->mac,sizeof(mac_address_t));
+            while (acl_entry != NULL && acl_count < MAX_ACL_COUNT) {
+                memcpy(&acl_device_mac, &acl_entry->mac, sizeof(mac_address_t));
                 to_mac_str(acl_device_mac, mac_str);
-                wifi_util_dbg_print(WIFI_CTRL, "%s:%d: calling wifi_addApAclDevice for mac %s vap_index %d\n", __func__, __LINE__, mac_str, vap_index);
+                wifi_util_dbg_print(WIFI_CTRL,
+                    "%s:%d: calling wifi_addApAclDevice for mac %s vap_index %d\n", __func__,
+                    __LINE__, mac_str, vap_index);
 #ifdef NL80211_ACL
-                if (wifi_hal_addApAclDevice(vap_index, (CHAR *) mac_str) != RETURN_OK) {
+                if (wifi_hal_addApAclDevice(vap_index, (CHAR *)mac_str) != RETURN_OK) {
 #else
-                if (wifi_addApAclDevice(vap_index, (CHAR *) mac_str) != RETURN_OK) {
+                if (wifi_addApAclDevice(vap_index, (CHAR *)mac_str) != RETURN_OK) {
 #endif
-                    wifi_util_error_print(WIFI_CTRL,"%s: wifi_addApAclDevice failed. vap_index:%d MAC:'%s'\n",__FUNCTION__, vap_index, mac_str);
+                    wifi_util_error_print(WIFI_CTRL,
+                        "%s: wifi_addApAclDevice failed. vap_index:%d MAC:'%s'\n", __FUNCTION__,
+                        vap_index, mac_str);
                 }
-                acl_entry = hash_map_get_next(rdk_vap_info->acl_map,acl_entry);
+                acl_entry = hash_map_get_next(rdk_vap_info->acl_map, acl_entry);
                 acl_count++;
-            }
+                }
             rdk_vap_info->is_mac_filter_initialized = true;
+            }
         }
     }
+    wifi_util_info_print(WIFI_CTRL,"SJY %s:%d Exiting \n",__func__,__LINE__);
     return RETURN_OK;
 }
 

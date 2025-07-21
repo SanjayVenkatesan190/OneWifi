@@ -204,6 +204,7 @@ webconfig_error_t decode_ipv6_address(char *ip) {
 
 webconfig_error_t decode_anqp_object(const cJSON *anqp, wifi_interworking_t *interworking_info)
 {
+    wifi_util_info_print(WIFI_WEBCONFIG,"%s:%d Decoding anqp object\n");
     cJSON *anqpElement = NULL;
     cJSON *anqpList = NULL;
     cJSON *anqpEntry = NULL;
@@ -764,6 +765,7 @@ webconfig_error_t decode_passpoint_object(const cJSON *passpoint, wifi_interwork
 
 webconfig_error_t decode_interworking_common_object(const cJSON *interworking, wifi_interworking_t *interworking_info)
 {
+    wifi_util_info_print(WIFI_WEBCONFIG,"%s:%d: Decoding Interworking Common Object\n", __func__, __LINE__);
     const cJSON *param, *venue;
     bool invalid_venue_group_type = false;
 
@@ -913,6 +915,7 @@ webconfig_error_t decode_interworking_common_object(const cJSON *interworking, w
 
 webconfig_error_t decode_interworking_object(const cJSON *interworking, wifi_interworking_t *interworking_info)
 {
+    wifi_util_info_print(WIFI_WEBCONFIG,"%s:%d: Decoding Interworking Object\n", __func__, __LINE__);
     const cJSON *passpoint, *anqp;
 
     if (decode_interworking_common_object(interworking, interworking_info) != webconfig_error_none) {
@@ -920,7 +923,7 @@ webconfig_error_t decode_interworking_object(const cJSON *interworking, wifi_int
         return webconfig_error_decode;
     }
 
-
+    wifi_util_info_print(WIFI_CTRL,"%s:%d: Interworking Common Object decoded successfully\n", __func__, __LINE__);
     if(cJSON_HasObjectItem(interworking, "ANQP") == true) {
         decode_param_object(interworking, "ANQP", anqp);
 
@@ -961,8 +964,9 @@ webconfig_error_t decode_interworking_object(const cJSON *interworking, wifi_int
             cJSON_Delete(hs2String);
         }
 */
+        wifi_util_info_print(WIFI_CTRL,"%s:%d: Passpoint Object decode\n", __func__, __LINE__);
         if (decode_passpoint_object(passpoint, interworking_info) != webconfig_error_none) {
-            wifi_util_dbg_print(WIFI_WEBCONFIG,"%s:%d: Validation failed\n", __func__, __LINE__);
+            wifi_util_dbg_print(WIFI_CTRL,"%s:%d: Validation failed\n", __func__, __LINE__);
             // Not returning error since Passpoint is optional configuration
         }
         cJSON *hs2String = cJSON_CreateObject();
