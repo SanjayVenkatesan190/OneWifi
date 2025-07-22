@@ -517,35 +517,86 @@ int webconfig_analyze_pending_states(wifi_ctrl_t *ctrl)
 
 static bool is_preassoc_cac_config_changed(wifi_vap_info_t *old, wifi_vap_info_t *new)
 {
-    if ((IS_STR_CHANGED(old->u.bss_info.preassoc.rssi_up_threshold, new->u.bss_info.preassoc.rssi_up_threshold, sizeof(old->u.bss_info.preassoc.rssi_up_threshold)))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.snr_threshold, new->u.bss_info.preassoc.snr_threshold, sizeof(old->u.bss_info.preassoc.snr_threshold)))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.cu_threshold, new->u.bss_info.preassoc.cu_threshold, sizeof(old->u.bss_info.preassoc.cu_threshold)))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.basic_data_transmit_rates, new->u.bss_info.preassoc.basic_data_transmit_rates, sizeof(old->u.bss_info.preassoc.basic_data_transmit_rates)))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.operational_data_transmit_rates, new->u.bss_info.preassoc.operational_data_transmit_rates, sizeof(old->u.bss_info.preassoc.operational_data_transmit_rates)))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.supported_data_transmit_rates, new->u.bss_info.preassoc.supported_data_transmit_rates, sizeof(old->u.bss_info.preassoc.supported_data_transmit_rates)))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.minimum_advertised_mcs, new->u.bss_info.preassoc.minimum_advertised_mcs, sizeof(old->u.bss_info.preassoc.minimum_advertised_mcs)))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.sixGOpInfoMinRate, new->u.bss_info.preassoc.sixGOpInfoMinRate, sizeof(old->u.bss_info.preassoc.sixGOpInfoMinRate)))
-        || (IS_CHANGED(old->u.bss_info.preassoc.time_ms, new->u.bss_info.preassoc.time_ms))
-        || (IS_CHANGED(old->u.bss_info.preassoc.min_num_mgmt_frames, new->u.bss_info.preassoc.min_num_mgmt_frames))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.tcm_exp_weightage, new->u.bss_info.preassoc.tcm_exp_weightage, sizeof(old->u.bss_info.preassoc.tcm_exp_weightage)))
-        || (IS_STR_CHANGED(old->u.bss_info.preassoc.tcm_gradient_threshold, new->u.bss_info.preassoc.tcm_gradient_threshold, sizeof(old->u.bss_info.preassoc.tcm_gradient_threshold)))) {
-        return true;
-    } else {
-        return false;
+    bool changed = false;
+
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.rssi_up_threshold, new->u.bss_info.preassoc.rssi_up_threshold, sizeof(old->u.bss_info.preassoc.rssi_up_threshold))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.rssi_up_threshold changed\n", __func__);
+        changed = true;
     }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.snr_threshold, new->u.bss_info.preassoc.snr_threshold, sizeof(old->u.bss_info.preassoc.snr_threshold))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.snr_threshold changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.cu_threshold, new->u.bss_info.preassoc.cu_threshold, sizeof(old->u.bss_info.preassoc.cu_threshold))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.cu_threshold changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.basic_data_transmit_rates, new->u.bss_info.preassoc.basic_data_transmit_rates, sizeof(old->u.bss_info.preassoc.basic_data_transmit_rates))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.basic_data_transmit_rates changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.operational_data_transmit_rates, new->u.bss_info.preassoc.operational_data_transmit_rates, sizeof(old->u.bss_info.preassoc.operational_data_transmit_rates))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.operational_data_transmit_rates changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.supported_data_transmit_rates, new->u.bss_info.preassoc.supported_data_transmit_rates, sizeof(old->u.bss_info.preassoc.supported_data_transmit_rates))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.supported_data_transmit_rates changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.minimum_advertised_mcs, new->u.bss_info.preassoc.minimum_advertised_mcs, sizeof(old->u.bss_info.preassoc.minimum_advertised_mcs))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.minimum_advertised_mcs changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.sixGOpInfoMinRate, new->u.bss_info.preassoc.sixGOpInfoMinRate, sizeof(old->u.bss_info.preassoc.sixGOpInfoMinRate))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.sixGOpInfoMinRate changed\n", __func__);
+        changed = true;
+    }
+    if (IS_CHANGED(old->u.bss_info.preassoc.time_ms, new->u.bss_info.preassoc.time_ms)) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.time_ms changed: %d -> %d\n", __func__, old->u.bss_info.preassoc.time_ms, new->u.bss_info.preassoc.time_ms);
+        changed = true;
+    }
+    if (IS_CHANGED(old->u.bss_info.preassoc.min_num_mgmt_frames, new->u.bss_info.preassoc.min_num_mgmt_frames)) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.min_num_mgmt_frames changed: %d -> %d\n", __func__, old->u.bss_info.preassoc.min_num_mgmt_frames, new->u.bss_info.preassoc.min_num_mgmt_frames);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.tcm_exp_weightage, new->u.bss_info.preassoc.tcm_exp_weightage, sizeof(old->u.bss_info.preassoc.tcm_exp_weightage))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.tcm_exp_weightage changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.preassoc.tcm_gradient_threshold, new->u.bss_info.preassoc.tcm_gradient_threshold, sizeof(old->u.bss_info.preassoc.tcm_gradient_threshold))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: preassoc.tcm_gradient_threshold changed\n", __func__);
+        changed = true;
+    }
+
+    return changed;
 }
 
 static bool is_postassoc_cac_config_changed(wifi_vap_info_t *old, wifi_vap_info_t *new)
 {
-    if ((IS_STR_CHANGED(old->u.bss_info.postassoc.rssi_up_threshold, new->u.bss_info.postassoc.rssi_up_threshold, sizeof(old->u.bss_info.postassoc.rssi_up_threshold)))
-        || (IS_STR_CHANGED(old->u.bss_info.postassoc.sampling_interval, new->u.bss_info.postassoc.sampling_interval, sizeof(old->u.bss_info.postassoc.sampling_interval)))
-        || (IS_STR_CHANGED(old->u.bss_info.postassoc.snr_threshold, new->u.bss_info.postassoc.snr_threshold, sizeof(old->u.bss_info.postassoc.snr_threshold)))
-        || (IS_STR_CHANGED(old->u.bss_info.postassoc.sampling_count, new->u.bss_info.postassoc.sampling_count, sizeof(old->u.bss_info.postassoc.sampling_count)))
-        || (IS_STR_CHANGED(old->u.bss_info.postassoc.cu_threshold, new->u.bss_info.postassoc.cu_threshold, sizeof(old->u.bss_info.postassoc.cu_threshold)))) {
-        return true;
-    } else {
-        return false;
+  bool changed = false;
+
+    if (IS_STR_CHANGED(old->u.bss_info.postassoc.rssi_up_threshold, new->u.bss_info.postassoc.rssi_up_threshold, sizeof(old->u.bss_info.postassoc.rssi_up_threshold))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: postassoc.rssi_up_threshold changed\n", __func__);
+        changed = true;
     }
+    if (IS_STR_CHANGED(old->u.bss_info.postassoc.sampling_interval, new->u.bss_info.postassoc.sampling_interval, sizeof(old->u.bss_info.postassoc.sampling_interval))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: postassoc.sampling_interval changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.postassoc.snr_threshold, new->u.bss_info.postassoc.snr_threshold, sizeof(old->u.bss_info.postassoc.snr_threshold))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: postassoc.snr_threshold changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.postassoc.sampling_count, new->u.bss_info.postassoc.sampling_count, sizeof(old->u.bss_info.postassoc.sampling_count))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: postassoc.sampling_count changed\n", __func__);
+        changed = true;
+    }
+    if (IS_STR_CHANGED(old->u.bss_info.postassoc.cu_threshold, new->u.bss_info.postassoc.cu_threshold, sizeof(old->u.bss_info.postassoc.cu_threshold))) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "%s: postassoc.cu_threshold changed\n", __func__);
+        changed = true;
+    }
+
+    return changed;
 }
 
 
@@ -798,7 +849,8 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
             memcpy(&tgt_rdk_vap_info, rdk_vap_info, sizeof(rdk_wifi_vap_info_t));
 
             start_wifi_sched_timer(vap_info->vap_index, ctrl, wifi_vap_sched);
-
+            wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Calling vap_svc_public_update for %s\n",
+                __func__, __LINE__, vap_names[i]);
             if (svc->update_fn(svc, tgt_radio_idx, p_tgt_vap_map, &tgt_rdk_vap_info) != RETURN_OK) {
                 wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: failed to apply\n", __func__, __LINE__);
                 memset(update_status, 0, sizeof(update_status));
@@ -817,6 +869,8 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
                 if (svc->event_fn != NULL) {
                     snprintf(pub.vap_name,sizeof(pub.vap_name),"%s",vap_info->vap_name);
                     pub.enabled = vap_info->u.bss_info.enabled;
+                    wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Calling vap_svc_public_event for %s\n",
+                                __func__, __LINE__, vap_names[i]);
                     svc->event_fn(svc, wifi_event_type_command, wifi_event_type_xfinity_enable,
                        vap_svc_event_none, &pub);
                 }
@@ -1342,6 +1396,7 @@ int webconfig_hal_home_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_dat
 
 int webconfig_hal_xfinity_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_data_t *data)
 {
+    wifi_util_info_print(WIFI_CTRL, "SJY Entering %s:%d\n", __func__, __LINE__);
     unsigned int ap_index;
     unsigned int num_vaps = 0;
     char *vap_name;
@@ -1974,21 +2029,24 @@ webconfig_error_t webconfig_ctrl_apply(webconfig_subdoc_t *doc, webconfig_subdoc
                     ret = webconfig_bus_apply(ctrl, &data->u.encoded);
                 }
             } else {
+                wifi_util_info_print(WIFI_CTRL,"SJY :%s:%d Entering the else of xfinity blob cfg encoded\n", __func__, __LINE__);
                 if (check_wifi_csa_sched_timeout_active_status(ctrl) == true) {
                     if (push_data_to_apply_pending_queue(data) != RETURN_OK) {
                         return webconfig_error_apply;
                     }
                 } else {
+                    wifi_util_info_print(WIFI_CTRL,"SJY :%s:%d Entered the else of timeout active status\n", __func__, __LINE__);
                     ctrl->webconfig_state |= ctrl_webconfig_state_vap_xfinity_cfg_rsp_pending;
                     webconfig_analytic_event_data_to_hal_apply(data);
                     ret = webconfig_hal_xfinity_vap_apply(ctrl, &data->u.decoded);
                     bool status = ((ret == RETURN_OK) ? true : false);
+                    wifi_util_info_print(WIFI_CTRL,"SJY :%s:%d Calling hotspot_cfg_sem_signal with status:%d\n", __func__, __LINE__, status);
                     hotspot_cfg_sem_signal(status);
                     wifi_util_info_print(WIFI_CTRL,":%s:%d xfinity blob cfg status:%d\n", __func__, __LINE__, ret);
                     process_managed_wifi_enable();
                     webconfig_cac_apply(ctrl, &data->u.decoded);
                     if (is_6g_supported_device((&(get_wifimgr_obj())->hal_cap.wifi_prop))) {
-                        wifi_util_info_print(WIFI_CTRL,"6g supported device add rnr of 6g\n");
+                        wifi_util_info_print(WIFI_CTRL,"SJY :%s:%d 6g supported device add rnr of 6g\n", __func__, __LINE__);
                         pub_svc = get_svc_by_type(ctrl, vap_svc_type_public);
                         if (pub_svc->event_fn != NULL) {
                              pub_svc->event_fn(pub_svc, wifi_event_type_command, wifi_event_type_xfinity_rrm,
