@@ -72,14 +72,14 @@ static int webconf_rollback_handler(void)
 static int decode_ssid_blob(wifi_vap_info_t *vap_info, cJSON *ssid,bool managed_wifi, pErr execRetVal);
 static int decode_security_blob(wifi_vap_info_t *vap_info, cJSON *security, pErr execRetVal);
 static int update_vap_info(void *data, wifi_vap_info_t *vap_info, pErr execRetVal);
-static int update_xfinity_vap_info(void *blob, webconfig_subdoc_data_t *data, const char *vap_prefix, pErr execRetVal);
+static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, const char *vap_prefix, pErr execRetVal);
 static int update_vap_info_managed_guest(void *data, void *amenities_blob, wifi_vap_info_t *vap_info, int radio_index,bool connected_building_enabled, pErr execRetVal);
 static int update_vap_info_managed_xfinity(void *data, wifi_vap_info_t *vap_info,pErr execRetVal);
 static int update_vap_info_with_blob_info(void *blob, void *amenities_blob, webconfig_subdoc_data_t *data, const char *vap_prefix, bool managed_wifi, pErr execRetVal);
 static int push_blob_data(webconfig_subdoc_data_t *data, webconfig_subdoc_type_t subdoc_type);
 static pErr create_execRetVal(void);
 static pErr private_home_exec_common_handler(void *blob, const char *vap_prefix, webconfig_subdoc_type_t subdoc_type);
-static pErr xfinity_exec_common_handler(void *blob, const char *vap_prefix, webconfig_subdoc_type_t subdoc_type);
+static pErr xfinity_exec_common_handler(cJSON *blob, const char *vap_prefix, webconfig_subdoc_type_t subdoc_type);
 static int validate_private_home_ssid_param(char *str, pErr execRetVal);
 static int validate_private_home_security_param(char *mode_enabled, char*encryption_method, pErr execRetVal);
 
@@ -718,39 +718,22 @@ done:
     return status;
 }
 
-static int update_xfinity_vap_info(void *blob, webconfig_subdoc_data_t *data, const char *vap_prefix, pErr execRetVal)
+static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, const char *vap_prefix, pErr execRetVal)
 {
     wifi_util_info_print(WIFI_CTRL, "SJY: %s: Entering update_xfinity_vap_info\n", __func__);
     int status = RETURN_OK;
     unsigned int radio_index = 0;
     unsigned int vap_array_index = 0;
-    cJSON *root = NULL;
     cJSON *security_obj = NULL;
     cJSON *interworking_obj = NULL;
     cJSON *cac_obj = NULL;
-    wifi_vap_name_t security;
     wifi_vap_info_t *vap_info = NULL;
-    char *blob_data = cJSON_Print((cJSON *)blob);
     webconfig_subdoc_decoded_data_t *params = &data->u.decoded;
     char *value;
     cJSON *param;
 
-    root = cJSON_Parse(blob_data);
-    if (root == NULL) {
-        wifi_util_error_print(WIFI_CTRL, "%s: json parse failure\n", __func__);
-        return RETURN_ERR;
-    }
-
-    if (!strncmp(vap_prefix, VAP_PREFIX_HOTSPOT, strlen(VAP_PREFIX_HOTSPOT))) {
-        snprintf(security, sizeof(wifi_vap_name_t), "Security");
-    } else {
-        wifi_util_error_print(WIFI_CTRL, "%s: No security info for hotspot\n", __func__);
-        status = RETURN_ERR;
-        goto done;
-    }
-
     cJSON *vb_entry = NULL;
-    cJSON_ArrayForEach(vb_entry, root) {
+    cJSON_ArrayForEach(vb_entry, blob) {
         wifi_util_info_print(WIFI_CTRL, "Entering array for each\n"); 
         cJSON *vap_name_obj = cJSON_GetObjectItem(vb_entry, "VapName");
         if ((vap_name_obj == NULL) || (cJSON_IsString(vap_name_obj) == false)) {
@@ -926,7 +909,7 @@ static int update_xfinity_vap_info(void *blob, webconfig_subdoc_data_t *data, co
             return -1;
         }
 
-        security_obj = cJSON_GetObjectItem(vb_entry, security);
+        security_obj = cJSON_GetObjectItem(vb_entry, "Security");
         if (security_obj == NULL) {
             wifi_util_error_print(WIFI_CTRL, "%s: Failed to get %s security\n", __func__,
                 vap_info->vap_name);
@@ -1426,6 +1409,8 @@ pErr wifi_vap_cfg_subdoc_handler(void *data)
     pErr execRetVal = NULL;
     unsigned long msg_size = 0L;
     unsigned char *msg = NULL;
+    cJSON *vap_blob = NULL;
+
 
     execRetVal = create_execRetVal();
     if (execRetVal == NULL ) {
@@ -1508,24 +1493,30 @@ pErr wifi_vap_cfg_subdoc_handler(void *data)
         wifi_util_error_print(WIFI_CTRL, "%s: json parse failure\n", __func__);
         return execRetVal;
     }
-
-    cJSON *vap_blob = cJSON_DetachItemFromObject(root, "WifiVapConfig");
-    if(vap_blob == NULL) {
+    
+    vap_blob = cJSON_GetObjectItem(root, "WifiVapConfig");
+    if ((vap_blob == NULL) || (cJSON_IsArray(vap_blob) == false)) {
+        wifi_util_error_print(WIFI_WEBCONFIG,"%s:%d: Validation failed for key:%s\n", __func__, __LINE__, "WifiVapConfig");
         msgpack_zone_destroy(&msg_z);
         execRetVal->ErrorCode = VALIDATION_FALIED;
-        strncpy(execRetVal->ErrorMsg, "Failed to detach WifiVapConfig", sizeof(execRetVal->ErrorMsg)-1);
+        strncpy(execRetVal->ErrorMsg, "json parse failure", sizeof(execRetVal->ErrorMsg)-1);
         free(blob_buf);
         free(msg);
-        cJSON_Delete(root);
-        wifi_util_error_print(WIFI_CTRL, "SJY %s: Failed to detach WifiVapConfig\n", __func__);
         return execRetVal;
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Found %d WifiVapConfig entries\n",
+        __func__, __LINE__, cJSON_GetArraySize(vap_blob));
     wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Calling xfinity_exec_common_handler\n",
         __func__, __LINE__);
-    return xfinity_exec_common_handler(vap_blob, VAP_PREFIX_HOTSPOT, webconfig_subdoc_type_xfinity);
-}
+    execRetVal = xfinity_exec_common_handler(vap_blob, VAP_PREFIX_HOTSPOT, webconfig_subdoc_type_xfinity);
+    
+    free(blob_buf);
+    msgpack_zone_destroy(&msg_z);
+    free(msg);
+    return execRetVal;
 
-static pErr xfinity_exec_common_handler(void *blob, const char *vap_prefix, webconfig_subdoc_type_t subdoc_type)
+}
+static pErr xfinity_exec_common_handler(cJSON *blob, const char *vap_prefix, webconfig_subdoc_type_t subdoc_type)
 {
     wifi_util_info_print(WIFI_CTRL, "SJY Entering %s: %d\n", __func__, __LINE__);
     pErr execRetVal = NULL;
@@ -1562,6 +1553,8 @@ static pErr xfinity_exec_common_handler(void *blob, const char *vap_prefix, webc
                               __func__, (subdoc_type == webconfig_subdoc_type_private) ? "private" : "home");
         goto done;
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY %s: %d Webconfig blob is applied success\n", __func__, __LINE__);
+    execRetVal->ErrorCode = BLOB_EXEC_SUCCESS;
 
 done:
     if (data) {
@@ -1569,6 +1562,7 @@ done:
     }
     return execRetVal;
 }
+
 
 static pErr create_execRetVal(void)
 {
