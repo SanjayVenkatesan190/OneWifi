@@ -965,8 +965,8 @@ static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, c
         }
     }
 done:
-    if (root) {
-        cJSON_Delete(root);
+    if (blob) {
+        cJSON_Delete(blob);
     }
     return status;
 }
