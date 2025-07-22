@@ -4037,36 +4037,12 @@ bool is_vap_param_config_changed(wifi_vap_info_t *vap_info_old, wifi_vap_info_t 
             wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.preassoc.sixGOpInfoMinRate changed\n", __func__);
             changed = true;
         }
-        if (IS_CHANGED(vap_info_old->u.bss_info.mld_info.common_info.mld_enable, vap_info_new->u.bss_info.mld_info.common_info.mld_enable)) {
-            wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.mld_info.common_info.mld_enable changed: %d -> %d\n", __func__, vap_info_old->u.bss_info.mld_info.common_info.mld_enable, vap_info_new->u.bss_info.mld_info.common_info.mld_enable);
-            changed = true;
-        }
-        if (IS_CHANGED(vap_info_old->u.bss_info.mld_info.common_info.mld_id, vap_info_new->u.bss_info.mld_info.common_info.mld_id)) {
-            wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.mld_info.common_info.mld_id changed: %d -> %d\n", __func__, vap_info_old->u.bss_info.mld_info.common_info.mld_id, vap_info_new->u.bss_info.mld_info.common_info.mld_id);
-            changed = true;
-        }
-        if (IS_CHANGED(vap_info_old->u.bss_info.mld_info.common_info.mld_link_id, vap_info_new->u.bss_info.mld_info.common_info.mld_link_id)) {
-            wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.mld_info.common_info.mld_link_id changed: %d -> %d\n", __func__, vap_info_old->u.bss_info.mld_info.common_info.mld_link_id, vap_info_new->u.bss_info.mld_info.common_info.mld_link_id);
-            changed = true;
-        }
-        if (IS_CHANGED(vap_info_old->u.bss_info.mld_info.common_info.mld_apply, vap_info_new->u.bss_info.mld_info.common_info.mld_apply)) {
-            wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.mld_info.common_info.mld_apply changed: %d -> %d\n", __func__, vap_info_old->u.bss_info.mld_info.common_info.mld_apply, vap_info_new->u.bss_info.mld_info.common_info.mld_apply);
-            changed = true;
-        }
         if (IS_CHANGED(vap_info_old->u.bss_info.hostap_mgt_frame_ctrl, vap_info_new->u.bss_info.hostap_mgt_frame_ctrl)) {
             wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.hostap_mgt_frame_ctrl changed: %d -> %d\n", __func__, vap_info_old->u.bss_info.hostap_mgt_frame_ctrl, vap_info_new->u.bss_info.hostap_mgt_frame_ctrl);
             changed = true;
         }
         if (IS_CHANGED(vap_info_old->u.bss_info.interop_ctrl, vap_info_new->u.bss_info.interop_ctrl)) {
             wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.interop_ctrl changed: %d -> %d\n", __func__, vap_info_old->u.bss_info.interop_ctrl, vap_info_new->u.bss_info.interop_ctrl);
-            changed = true;
-        }
-        if (IS_CHANGED(vap_info_old->u.bss_info.vendor_elements_len, vap_info_new->u.bss_info.vendor_elements_len)) {
-            wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.vendor_elements_len changed: %d -> %d\n", __func__, vap_info_old->u.bss_info.vendor_elements_len, vap_info_new->u.bss_info.vendor_elements_len);
-            changed = true;
-        }
-        if (IS_BIN_CHANGED(vap_info_old->u.bss_info.vendor_elements, vap_info_new->u.bss_info.vendor_elements, sizeof(vap_info_old->u.bss_info.vendor_elements))) {
-            wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.vendor_elements changed\n", __func__);
             changed = true;
         }
     }
