@@ -720,6 +720,7 @@ static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, c
     int status = RETURN_OK;
     unsigned int radio_index = 0;
     unsigned int vap_array_index = 0;
+    unsigned int size = 0;
     cJSON *security_obj = NULL;
     cJSON *interworking_obj = NULL;
     cJSON *cac_obj = NULL;
@@ -728,25 +729,25 @@ static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, c
     char *value;
     cJSON *param;
 
+    size = cJSON_GetArraySize(blob);
+    wifi_util_info_print(WIFI_CTRL, "SJY: %s: size of blob array: %d\n", __func__, size);
+
     cJSON *vb_entry = NULL;
-    cJSON_ArrayForEach(vb_entry, blob) {
-        wifi_util_info_print(WIFI_CTRL, "Entering array for each\n"); 
+    for (unsigned int i = 0; i < size; i++) {
+        vb_entry = cJSON_GetArrayItem(blob, i);
+        wifi_util_info_print(WIFI_CTRL, "SJY Entering array for each iteration of %d\n", i);
         cJSON *vap_name_obj = cJSON_GetObjectItem(vb_entry, "VapName");
         if ((vap_name_obj == NULL) || (cJSON_IsString(vap_name_obj) == false)) {
             wifi_util_info_print(WIFI_CTRL, "%s: Missing VapName\n", __func__);
             continue;
         }
         char *vap_name_str = cJSON_GetStringValue(vap_name_obj);
+        wifi_util_info_print(WIFI_CTRL, "SJY vap_name_str: %s\n", vap_name_str);
 
         radio_index = convert_vap_name_to_radio_array_index(&params->hal_cap.wifi_prop, vap_name_str);
+        wifi_util_info_print(WIFI_CTRL, "SJY : %s: radio_index: %d\n", __func__, radio_index);
         vap_array_index = convert_vap_name_to_array_index(&params->hal_cap.wifi_prop, vap_name_str);
-
-        if (((int)radio_index < 0) || ((int)vap_array_index < 0)) {
-            wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: Invalid index\n", __func__, __LINE__);
-            continue;
-        }
-        wifi_util_info_print(WIFI_CTRL, "SJY : %s: radio_index: %d, vap_array_index: %d\n",
-            __func__, radio_index, vap_array_index);
+        wifi_util_info_print(WIFI_CTRL, "SJY : %s: vap_array_index: %d\n", __func__, vap_array_index);
 
         vap_info = &params->radios[radio_index].vaps.vap_map.vap_array[vap_array_index];
         snprintf(vap_info->vap_name, sizeof(vap_info->vap_name), "%s", vap_name_str);
@@ -959,7 +960,7 @@ static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, c
                 return webconfig_error_decode;
             }
         }
-    }
+    } // end outer for loop of 6 objects.
 done:
     if (blob) {
         cJSON_Delete(blob);
@@ -1185,7 +1186,7 @@ static int push_blob_data(webconfig_subdoc_data_t *data, webconfig_subdoc_type_t
     bool ret_value = hotspot_cfg_sem_wait_duration(MAX_HOTSPOT_BLOB_SET_TIMEOUT);
     if (ret_value == false) {
         wifi_util_error_print(WIFI_CTRL, "%s:%d WebConfig blob apply is failed:%s\n", __func__,
-            __LINE__);
+            __LINE__,subdoc_type == webconfig_subdoc_type_xfinity ? "xfinity" : "other subdoc");
     } else {
         wifi_util_info_print(WIFI_CTRL, "%s:%d WebConfig blob is applied success\n", __func__,
             __LINE__);
@@ -1524,12 +1525,14 @@ static pErr xfinity_exec_common_handler(cJSON *blob, const char *vap_prefix, web
                               __func__, sizeof(webconfig_subdoc_data_t));
         goto done;
     }
-
+   
     execRetVal = create_execRetVal();
     if (execRetVal == NULL) {
         wifi_util_error_print(WIFI_CTRL, "%s: malloc failure\n", __func__);
         goto done;
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY %s:%d The incoming blob is %s\n", __func__, __LINE__, cJSON_Print(blob));
+
     wifi_util_info_print(WIFI_CTRL, "SJY %s: %d Calling webconfig_init_subdoc_data\n", __func__, __LINE__);
     // Initialize the subdoc data structure
     webconfig_init_subdoc_data(data);
@@ -1545,8 +1548,7 @@ static pErr xfinity_exec_common_handler(cJSON *blob, const char *vap_prefix, web
     if (push_blob_data(data, subdoc_type) != RETURN_OK) {
         execRetVal->ErrorCode = WIFI_HAL_FAILURE;
         strncpy(execRetVal->ErrorMsg, "SJY push_blob_to_ctrl_queue failed", sizeof(execRetVal->ErrorMsg)-1);
-        wifi_util_error_print(WIFI_CTRL, "SJY %s: failed to encode %s subdoc\n", \
-                              __func__, (subdoc_type == webconfig_subdoc_type_private) ? "private" : "home");
+        wifi_util_error_print(WIFI_CTRL, "%s: failed to encode xfinity subdoc\n", __func__);
         goto done;
     }
     wifi_util_info_print(WIFI_CTRL, "SJY %s: %d Webconfig blob is applied success\n", __func__, __LINE__);
