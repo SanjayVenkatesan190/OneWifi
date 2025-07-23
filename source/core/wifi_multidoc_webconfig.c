@@ -766,8 +766,9 @@ static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, c
             wifi_util_error_print(WIFI_CTRL, "SSID validation failed\n");
             return -1;
         } else {
+            wifi_util_info_print(WIFI_CTRL, "SJY the SSID of %s is: %s\n", vap_info->vap_name, value);
             snprintf(vap_info->u.bss_info.ssid, sizeof(vap_info->u.bss_info.ssid), "%s", value);
-            wifi_util_info_print(WIFI_CTRL, "   \"SSID\": %s\n", vap_info->u.bss_info.ssid);
+            wifi_util_info_print(WIFI_CTRL, "SJY SSID is: %s\n", vap_info->u.bss_info.ssid);
         }
 
         param = cJSON_GetObjectItem(vb_entry, "Enabled");
@@ -1176,7 +1177,7 @@ static int push_blob_data(webconfig_subdoc_data_t *data, webconfig_subdoc_type_t
     wifi_ctrl_t *ctrl = (wifi_ctrl_t *)get_wifictrl_obj();
 
     if (webconfig_encode(&ctrl->webconfig, data, subdoc_type) != webconfig_error_none) {
-        wifi_util_error_print(WIFI_CTRL, "%s:%d - Failed webconfig_encode for subdoc type %d\n", __FUNCTION__, __LINE__, subdoc_type);
+        wifi_util_error_print(WIFI_CTRL, "%s:%d - Failed webconfig_encode for subdoc type %d\n", __FUNCTION__, __LINE__, subdoc_type == webconfig_subdoc_type_xfinity ? "xfinity" : "other subdoc");
         return RETURN_ERR;
     }
 
@@ -1544,7 +1545,7 @@ static pErr xfinity_exec_common_handler(cJSON *blob, const char *vap_prefix, web
         execRetVal->ErrorCode = VALIDATION_FALIED;
         goto done;
     }
-
+    wifi_util_info_print(WIFI_CTRL, "SJY %s: %d Calling push_blob_data\n", __func__, __LINE__);
     if (push_blob_data(data, subdoc_type) != RETURN_OK) {
         execRetVal->ErrorCode = WIFI_HAL_FAILURE;
         strncpy(execRetVal->ErrorMsg, "SJY push_blob_to_ctrl_queue failed", sizeof(execRetVal->ErrorMsg)-1);

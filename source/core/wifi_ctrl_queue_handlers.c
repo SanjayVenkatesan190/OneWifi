@@ -3540,6 +3540,8 @@ void handle_webconfig_event(wifi_ctrl_t *ctrl, const char *raw, unsigned int len
     case wifi_event_webconfig_set_data_ovsm:
     case wifi_event_webconfig_data_resched_to_ctrl_queue:
     case wifi_event_webconfig_set_data_force_apply:
+        wifi_util_info_print(WIFI_CTRL, "%s:%d: webconfig set data event subtype %s\n", __func__, __LINE__,
+            wifi_event_subtype_to_string(subtype));
         memcpy((unsigned char *)&data.u.decoded.hal_cap, (unsigned char *)&mgr->hal_cap,
             sizeof(wifi_hal_capability_t));
 
