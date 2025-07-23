@@ -1492,8 +1492,8 @@ pErr wifi_vap_cfg_subdoc_handler(void *data)
         return execRetVal;
     }
     
-    vap_blob = cJSON_GetObjectItem(root, "WifiVapConfig");
-    if ((vap_blob == NULL) || (cJSON_IsArray(vap_blob) == false)) {
+    vap_blob = cJSON_DetachItemFromObject(root, "WifiVapConfig");
+    if (vap_blob == NULL) {
         wifi_util_error_print(WIFI_WEBCONFIG,"%s:%d: Validation failed for key:%s\n", __func__, __LINE__, "WifiVapConfig");
         msgpack_zone_destroy(&msg_z);
         execRetVal->ErrorCode = VALIDATION_FALIED;
