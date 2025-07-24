@@ -330,6 +330,10 @@ static int decode_security_blob(wifi_vap_info_t *vap_info, cJSON *security,pErr 
             vap_info->u.bss_info.security.mode = wifi_security_mode_none;
             vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
             vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_psk;
+        } else if (!strcmp(value, "Enhanced-Open")) {
+            vap_info->u.bss_info.security.mode = wifi_security_mode_enhanced_open;
+            vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
+            vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_none;
         } else if (!strcmp(value, "WPA-Personal")) {
             vap_info->u.bss_info.security.mode = wifi_security_mode_wpa_personal;
             vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
@@ -341,7 +345,6 @@ static int decode_security_blob(wifi_vap_info_t *vap_info, cJSON *security,pErr 
         } else if (!strcmp(value, "WPA-WPA2-Personal")) {
             vap_info->u.bss_info.security.mode = wifi_security_mode_wpa_wpa2_personal;
             vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
-
             vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_psk;
         } else if (!strcmp(value, "WPA3-Personal")) {
             vap_info->u.bss_info.security.mode = wifi_security_mode_wpa3_personal;
@@ -351,13 +354,27 @@ static int decode_security_blob(wifi_vap_info_t *vap_info, cJSON *security,pErr 
             vap_info->u.bss_info.security.mode = wifi_security_mode_wpa3_transition;
             vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_optional;
             vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_psk_sae;
+        } else if (!strcmp(value, "WPA-Enterprise")) {
+            vap_info->u.bss_info.security.mode = wifi_security_mode_wpa_enterprise;
+            vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
+        } else if (!strcmp(value, "WPA2-Enterprise")) {
+            vap_info->u.bss_info.security.mode =
+                wifi_security_mode_wpa2_enterprise;
+            vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
+        } else if (!strcmp(value, "WPA-WPA2-Enterprise")) {
+            vap_info->u.bss_info.security.mode = wifi_security_mode_wpa_wpa2_enterprise;
+            vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
+        } else if (!strcmp(value, "WPA3-Enterprise")) {
+            vap_info->u.bss_info.security.mode = wifi_security_mode_wpa3_enterprise;
+            vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_required;
         } else if (!strcmp(value, "WPA3-Personal-Compatibility")) {
             vap_info->u.bss_info.security.mode = wifi_security_mode_wpa3_compatibility;
             vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_psk_sae;
             vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
         } else {
             if (execRetVal) {
-                strncpy(execRetVal->ErrorMsg,"Invalid Security Mode",sizeof(execRetVal->ErrorMsg)-1);
+                strncpy(execRetVal->ErrorMsg, "Invalid Security Mode",
+                    sizeof(execRetVal->ErrorMsg) - 1);
             }
 
             wifi_util_error_print(WIFI_CTRL, "%s: unknown \"ModeEnabled\": %s\n", __func__, value);
@@ -366,7 +383,8 @@ static int decode_security_blob(wifi_vap_info_t *vap_info, cJSON *security,pErr 
     } else {
         wifi_util_error_print(WIFI_CTRL, "%s: missing \"ModeEnabled\"\n", __func__);
         if (execRetVal) {
-            strncpy(execRetVal->ErrorMsg,"Invalid Security Mode",sizeof(execRetVal->ErrorMsg)-1);
+            strncpy(execRetVal->ErrorMsg, "Invalid Security Mode",
+                sizeof(execRetVal->ErrorMsg) - 1);
         }
         return RETURN_ERR;
     }
