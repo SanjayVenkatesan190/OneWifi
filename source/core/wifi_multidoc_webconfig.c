@@ -333,7 +333,6 @@ static int decode_security_blob(wifi_vap_info_t *vap_info, cJSON *security,pErr 
         } else if (!strcmp(value, "Enhanced-Open")) {
             vap_info->u.bss_info.security.mode = wifi_security_mode_enhanced_open;
             vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
-            vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_none;
         } else if (!strcmp(value, "WPA-Personal")) {
             vap_info->u.bss_info.security.mode = wifi_security_mode_wpa_personal;
             vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
