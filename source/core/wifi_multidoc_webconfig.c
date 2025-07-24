@@ -950,7 +950,6 @@ static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, c
             if (cac_obj == NULL) {
                 wifi_util_error_print(WIFI_CTRL, "%s:%d: CAC object not present for %s\n",
                     __FUNCTION__, __LINE__, vap_info->vap_name);
-                goto done;
             }
             wifi_util_info_print(WIFI_CTRL, "SJY: %s: Decoding CAC blob for %s\n", __func__,
                 vap_info->vap_name);
