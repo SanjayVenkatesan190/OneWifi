@@ -950,14 +950,15 @@ static int update_xfinity_vap_info(cJSON *blob, webconfig_subdoc_data_t *data, c
             if (cac_obj == NULL) {
                 wifi_util_error_print(WIFI_CTRL, "%s:%d: CAC object not present for %s\n",
                     __FUNCTION__, __LINE__, vap_info->vap_name);
-            }
-            wifi_util_info_print(WIFI_CTRL, "SJY: %s: Decoding CAC blob for %s\n", __func__,
-                vap_info->vap_name);
-            if (decode_cac_object(vap_info, cac_obj) != webconfig_error_none) {
-                wifi_util_error_print(WIFI_WEBCONFIG,
-                    "%s:%d: CAC objects validation failed for %s\n", __FUNCTION__, __LINE__,
+            } else {
+                wifi_util_info_print(WIFI_CTRL, "SJY: %s: Decoding CAC blob for %s\n", __func__,
                     vap_info->vap_name);
-                return webconfig_error_decode;
+                if (decode_cac_object(vap_info, cac_obj) != webconfig_error_none) {
+                    wifi_util_error_print(WIFI_WEBCONFIG,
+                        "%s:%d: CAC objects validation failed for %s\n", __FUNCTION__, __LINE__,
+                        vap_info->vap_name);
+                    return webconfig_error_decode;
+                }
             }
         }
     } // end outer for loop of 6 objects.
