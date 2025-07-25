@@ -270,16 +270,32 @@ int vap_svc_public_update(vap_svc_t *svc, unsigned int radio_index, wifi_vap_inf
         memcpy((unsigned char *)&map->vap_array[i], (unsigned char *)&p_tgt_vap_map->vap_array[0],
                     sizeof(wifi_vap_info_t));
         memcpy((unsigned char *)&p_tgt_created_vap_map->vap_array[i], (unsigned char *)&p_tgt_vap_map->vap_array[0], sizeof(wifi_vap_info_t));
+        wifi_util_info_print(WIFI_CTRL,"SJY %s:%d Memcpy is done for vap array\n",__func__, __LINE__);
+        wifi_util_info_print(WIFI_CTRL,"SJY %s:%d: Calling update_wifi_vap_info_fn for vap_name:%s\n",
+            __FUNCTION__, __LINE__, map->vap_array[i].vap_name);
         get_wifidb_obj()->desc.update_wifi_vap_info_fn(map->vap_array[i].vap_name, &map->vap_array[i],
             &rdk_vap_info[i]);
+
+        wifi_util_info_print(WIFI_CTRL,"SJY %s:%d: Calling update_wifi_interworking_cfg_fn for vap_name:%s\n",
+            __FUNCTION__, __LINE__, map->vap_array[i].vap_name);
         get_wifidb_obj()->desc.update_wifi_interworking_cfg_fn(map->vap_array[i].vap_name,
             &map->vap_array[i].u.bss_info.interworking);
+
+        wifi_util_info_print(WIFI_CTRL,"SJY %s:%d: Calling update_wifi_security_config_fn for vap_name:%s\n",
+            __FUNCTION__, __LINE__, map->vap_array[i].vap_name);
         get_wifidb_obj()->desc.update_wifi_security_config_fn(map->vap_array[i].vap_name,
             &map->vap_array[i].u.bss_info.security);
+
+        wifi_util_info_print(WIFI_CTRL,"SJY %s:%d: Calling update_wifi_passpoint_cfg_fn for vap_name:%s\n",
+            __FUNCTION__, __LINE__, map->vap_array[i].vap_name);
         get_wifidb_obj()->desc.update_wifi_passpoint_cfg_fn(map->vap_array[i].vap_name,
             &map->vap_array[i].u.bss_info.interworking);
+
+        wifi_util_info_print(WIFI_CTRL,"SJY %s:%d: Calling update_wifi_anqp_cfg_fn for vap_name:%s\n",
+            __FUNCTION__, __LINE__, map->vap_array[i].vap_name);
         get_wifidb_obj()->desc.update_wifi_anqp_cfg_fn(map->vap_array[i].vap_name,
              &map->vap_array[i].u.bss_info.interworking);
+
         if(map->vap_array[i].u.bss_info.mgmtPowerControl != 0) {
             scheduler_add_timer_task(ctrl->sched, FALSE, NULL, update_managementFramePower, NULL, MFPC_TIMER * 1000, 1, FALSE);
         }
