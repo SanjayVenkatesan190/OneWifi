@@ -3783,7 +3783,7 @@ int get_partner_id(char *partner_id)
 }
 
 
-/*static bool is_interworking_config_changed(char *vap_name, wifi_interworking_t *old_cfg,
+static bool is_interworking_config_changed(char *vap_name, wifi_interworking_t *old_cfg,
     wifi_interworking_t *new_cfg)
 {
     bool is_hotspot_vap = FALSE;
@@ -3801,7 +3801,7 @@ int get_partner_id(char *partner_id)
                    || IS_BIN_CHANGED(&old_cfg->roamingConsortium, &new_cfg->roamingConsortium,
                     sizeof(wifi_roamingConsortiumElement_t)))));
 }
-
+/*
 static bool is_vap_preassoc_cac_config_changed(char *vap_name,
     wifi_preassoc_control_t *old_cfg,
     wifi_preassoc_control_t *new_cfg)
@@ -3941,7 +3941,8 @@ bool is_vap_param_config_changed(wifi_vap_info_t *vap_info_old, wifi_vap_info_t 
             wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.security changed\n", __func__);
             changed = true;
         }
-        if (IS_BIN_CHANGED(&vap_info_old->u.bss_info.interworking, &vap_info_new->u.bss_info.interworking, sizeof(wifi_interworking_t))) {
+        if (is_interworking_config_changed(vap_info_new->vap_name,
+                &vap_info_old->u.bss_info.interworking, &vap_info_new->u.bss_info.interworking)) {
             wifi_util_info_print(WIFI_WEBCONFIG, "%s: bss_info.interworking changed\n", __func__);
             changed = true;
         }

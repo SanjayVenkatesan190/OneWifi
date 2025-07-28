@@ -150,12 +150,20 @@ int webconfig_blaster_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_data_t *
 void webconfig_init_subdoc_data(webconfig_subdoc_data_t *data)
 {
     wifi_mgr_t *mgr = get_wifimgr_obj();
-
+    // print the nbrReportActivated of mgr here.
+    for (int i = 0; i < getNumberRadios(); i++) {
+        for(int j = 0; j < 8; j++) {
+            wifi_util_info_print(WIFI_CTRL, "%s:%d: nbrReportActivated of mgr is %d for radio %d vap_name %s\n",
+                                 __func__, __LINE__, mgr->radio_config[i].vaps.vap_map.vap_array[j].u.bss_info.nbrReportActivated,
+                                 i, mgr->radio_config[i].vaps.vap_map.vap_array[j].vap_name);
+        }
+    }
     memset(data, 0, sizeof(webconfig_subdoc_data_t));
     memcpy((unsigned char *)&data->u.decoded.radios, (unsigned char *)&mgr->radio_config, getNumberRadios()*sizeof(rdk_wifi_radio_t));
     memcpy((unsigned char *)&data->u.decoded.config, (unsigned char *)&mgr->global_config, sizeof(wifi_global_config_t));
     memcpy((unsigned char *)&data->u.decoded.hal_cap, (unsigned char *)&mgr->hal_cap, sizeof(wifi_hal_capability_t));
     data->u.decoded.num_radios = getNumberRadios();
+    
 }
 
 int update_vap_params_to_hal_and_db(wifi_vap_info_t *vap, bool enable_or_disable) {

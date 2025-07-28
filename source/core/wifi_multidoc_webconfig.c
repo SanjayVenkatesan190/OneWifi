@@ -1554,7 +1554,7 @@ static pErr xfinity_exec_common_handler(cJSON *blob, const char *vap_prefix, web
     wifi_util_info_print(WIFI_CTRL, "SJY %s: %d Calling webconfig_init_subdoc_data\n", __func__, __LINE__);
     // Initialize the subdoc data structure
     webconfig_init_subdoc_data(data);
-
+    
     wifi_util_info_print(WIFI_CTRL, "SJY %s: %d Calling update_vap_info_with_blob_info\n", __func__, __LINE__);
     // Update the VAP info with the blob data
     if(update_xfinity_vap_info(blob, data, vap_prefix, execRetVal) != RETURN_OK) {

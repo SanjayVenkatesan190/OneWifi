@@ -229,7 +229,10 @@ int vap_svc_public_update(vap_svc_t *svc, unsigned int radio_index, wifi_vap_inf
         p_tgt_vap_map->vap_array[0].u.bss_info.enabled &= rdk_vap_info[i].exists;
         if (is_6g_supported_device(&g_wifi_mgr->hal_cap.wifi_prop) && p_tgt_vap_map->vap_array[0].u.bss_info.enabled) {
             wifi_util_info_print(WIFI_CTRL, "%s:%d 6g supported device  %s is enabled  nbrReport is activated\n", __func__,__LINE__,p_tgt_vap_map->vap_array[0].vap_name);
-            p_tgt_vap_map->vap_array[0].u.bss_info.nbrReportActivated = true;
+            if( p_tgt_vap_map->vap_array[0].u.bss_info.nbrReportActivated != true) {
+                wifi_util_info_print(WIFI_CTRL, "%s:%d nbrReportActivated is set to true for vap_name %s\n", __func__,__LINE__,p_tgt_vap_map->vap_array[0].vap_name);
+                p_tgt_vap_map->vap_array[0].u.bss_info.nbrReportActivated = true;
+            }
         }
         wifi_util_info_print(WIFI_CTRL,"SJY %s:%d: Calling wifi_hal_createVAP for radio_index:%d vap_index:%d enabled:%d greylist_rfc:%d\n",
                                                 __FUNCTION__,__LINE__,radio_index, map->vap_array[i].vap_index,enabled,greylist_rfc);
