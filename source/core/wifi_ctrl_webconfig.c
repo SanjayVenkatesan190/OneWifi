@@ -151,8 +151,8 @@ void webconfig_init_subdoc_data(webconfig_subdoc_data_t *data)
 {
     wifi_mgr_t *mgr = get_wifimgr_obj();
     // print the nbrReportActivated of mgr here.
-    for (int i = 0; i < getNumberRadios(); i++) {
-        for(int j = 0; j < 8; j++) {
+    for (unsigned int i = 0; i < getNumberRadios(); i++) {
+        for (unsigned int j = 0; j < 8; j++) {
             wifi_util_info_print(WIFI_CTRL, "%s:%d: nbrReportActivated of mgr is %d for radio %d vap_name %s\n",
                                  __func__, __LINE__, mgr->radio_config[i].vaps.vap_map.vap_array[j].u.bss_info.nbrReportActivated,
                                  i, mgr->radio_config[i].vaps.vap_map.vap_array[j].vap_name);
