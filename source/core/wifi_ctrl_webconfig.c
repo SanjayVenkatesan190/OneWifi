@@ -169,8 +169,8 @@ void webconfig_init_subdoc_data(webconfig_subdoc_data_t *data)
     for(unsigned int i = 0; i < data->u.decoded.num_radios; i++) {
         for (unsigned int j = 0; j < 8; j++) {
             wifi_util_info_print(WIFI_CTRL, "%s:%d: nbrReportActivated of data is %d for radio %d vap_name %s\n",
-                                 __func__, __LINE__, data->u.decoded.radios[i].vaps.rdk_vap_array[j].u.bss_info.nbrReportActivated,
-                                 i, data->u.decoded.radios[i].vaps.rdk_vap_array[j].vap_name);
+                                 __func__, __LINE__, data->u.decoded.radios[i].vaps.vap_map.vap_array[j].u.bss_info.nbrReportActivated,
+                                 i, data->u.decoded.radios[i].vaps.vap_map.vap_array[j].vap_name);
         }
     }
 }
