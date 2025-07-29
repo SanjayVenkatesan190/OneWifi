@@ -163,7 +163,16 @@ void webconfig_init_subdoc_data(webconfig_subdoc_data_t *data)
     memcpy((unsigned char *)&data->u.decoded.config, (unsigned char *)&mgr->global_config, sizeof(wifi_global_config_t));
     memcpy((unsigned char *)&data->u.decoded.hal_cap, (unsigned char *)&mgr->hal_cap, sizeof(wifi_hal_capability_t));
     data->u.decoded.num_radios = getNumberRadios();
+
+    // print the nbrReportActivated of data here.
     
+    for(unsigned int i = 0; i < data->u.decoded.num_radios; i++) {
+        for (unsigned int j = 0; j < 8; j++) {
+            wifi_util_info_print(WIFI_CTRL, "%s:%d: nbrReportActivated of data is %d for radio %d vap_name %s\n",
+                                 __func__, __LINE__, data->u.decoded.radios[i].vaps.rdk_vap_array[j].u.bss_info.nbrReportActivated,
+                                 i, data->u.decoded.radios[i].vaps.rdk_vap_array[j].vap_name);
+        }
+    }
 }
 
 int update_vap_params_to_hal_and_db(wifi_vap_info_t *vap, bool enable_or_disable) {
