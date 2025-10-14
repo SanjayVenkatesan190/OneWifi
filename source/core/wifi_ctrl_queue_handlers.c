@@ -3761,6 +3761,7 @@ int free_webconfig_msg_payload(wifi_event_subtype_t sub_type, webconfig_subdoc_d
 void handle_webconfig_event(wifi_ctrl_t *ctrl, const char *raw, unsigned int len,
     wifi_event_subtype_t subtype)
 {
+    wifi_util_info_print(WIFI_CTRL, "SJY Entering %s\n", __func__);
     webconfig_t *config;
     webconfig_subdoc_data_t data = { 0 };
     wifi_mgr_t *mgr = (wifi_mgr_t *)get_wifimgr_obj();
@@ -3787,6 +3788,8 @@ void handle_webconfig_event(wifi_ctrl_t *ctrl, const char *raw, unsigned int len
 
         json = cJSON_Parse(raw);
         subdoc_type = find_subdoc_type(config, json);
+        wifi_util_info_print(WIFI_CTRL, "%s:%d subdoc_type %d\n", __func__, __LINE__,
+            subdoc_type);
         cJSON_Delete(json);
         switch (subdoc_type) {
         case webconfig_subdoc_type_private:
@@ -3806,6 +3809,7 @@ void handle_webconfig_event(wifi_ctrl_t *ctrl, const char *raw, unsigned int len
         case webconfig_subdoc_type_mesh_backhaul:
             num_ssid += get_list_of_mesh_backhaul(&mgr->hal_cap.wifi_prop, MAX_NUM_RADIOS,
                 &vap_names[num_ssid]);
+            wifi_util_info_print(WIFI_CTRL, "SJY %s:%d mesh backhaul num_ssid %d\n", __func__, __LINE__, num_ssid);
             break;
         case webconfig_subdoc_type_lnf:
             num_ssid += get_list_of_lnf_psk(&mgr->hal_cap.wifi_prop, MAX_NUM_RADIOS,
@@ -3821,7 +3825,7 @@ void handle_webconfig_event(wifi_ctrl_t *ctrl, const char *raw, unsigned int len
         if (num_ssid != 0) {
             update_subdoc_data(&data, num_ssid, vap_names);
         }
-
+        wifi_util_info_print(WIFI_CTRL, "SJY %s:%d calling apps_mgr_analytics_event\n", __func__, __LINE__);
         apps_mgr_analytics_event(&ctrl->apps_mgr, wifi_event_type_webconfig, subtype, NULL);
         webconfig_decode(config, &data, raw);
         wifi_event = (wifi_event_t *)malloc(sizeof(wifi_event_t));

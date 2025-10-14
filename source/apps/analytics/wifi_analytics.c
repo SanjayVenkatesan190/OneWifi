@@ -195,6 +195,7 @@ int analytics_event_webconfig_get_data_for_dmlthread(wifi_app_t *apps, void *arg
 
 int analytics_event_webconfig_set_data(wifi_app_t *apps, void *arg, wifi_event_subtype_t sub_type)
 {
+    wifi_util_info_print(WIFI_ANALYTICS, "SJY Entering %s:%d\n", __func__, __LINE__);
     webconfig_subdoc_data_t *doc = (webconfig_subdoc_data_t *)arg;
     char temp_str[512];
     webconfig_subdoc_decoded_data_t *decoded_params = NULL;
@@ -215,6 +216,7 @@ int analytics_event_webconfig_set_data(wifi_app_t *apps, void *arg, wifi_event_s
     } else if (sub_type == wifi_event_webconfig_set_data) {
         analytics_format = analytics_format_core_core;
     } else if (sub_type == wifi_event_webconfig_set_data_force_apply) {
+        wifi_util_info_print(WIFI_ANALYTICS, "SJY %s:%d Entering wifi_event_webconfig_set_data_force_apply and setting analytics_format\n", __func__, __LINE__);
         analytics_format = analytics_format_core_core;
     }
 
@@ -241,9 +243,11 @@ int analytics_event_webconfig_set_data(wifi_app_t *apps, void *arg, wifi_event_s
         case webconfig_subdoc_type_xfinity:
         case webconfig_subdoc_type_lnf:
         case webconfig_subdoc_type_mesh_backhaul:
+            wifi_util_info_print(WIFI_ANALYTICS, "SJY %s:%d Entering case webconfig_subdoc_type_mesh_backhaul\n", __func__, __LINE__);
             out_bytes += snprintf(&temp_str[out_bytes], (sizeof(temp_str)-out_bytes), "%s:", subdoc_type_to_string(doc->type));
             for (i = 0; i < getNumberRadios(); i++) {
                 radio = &decoded_params->radios[i];
+                wifi_util_info_print(WIFI_ANALYTICS, "SJY %s:%d radio name %s\n", __func__, __LINE__, radio->name);
                 vap_map = &radio->vaps.vap_map;
                 for (j = 0; j < radio->vaps.num_vaps; j++) {
                     vap = &vap_map->vap_array[j];
@@ -257,6 +261,7 @@ int analytics_event_webconfig_set_data(wifi_app_t *apps, void *arg, wifi_event_s
         break;
         case webconfig_subdoc_type_mesh_sta:
         case webconfig_subdoc_type_mesh_backhaul_sta:
+            wifi_util_info_print(WIFI_ANALYTICS, "SJY %s:%d Entering case webconfig_subdoc_type_mesh_backhaul_sta\n", __func__, __LINE__);
             out_bytes += snprintf(&temp_str[out_bytes], (sizeof(temp_str)-out_bytes), "%s:", subdoc_type_to_string(doc->type));
             for (i = 0; i < getNumberRadios(); i++) {
                 radio = &decoded_params->radios[i];
@@ -299,8 +304,9 @@ int analytics_event_webconfig_set_data(wifi_app_t *apps, void *arg, wifi_event_s
 
 int analytics_event_webconfig_hal_result(wifi_app_t *apps, void *arg)
 {
+    wifi_util_info_print(WIFI_ANALYTICS, "SJY %s:%d Entering\n", __func__, __LINE__);
     char *hal_result = (char *)arg;
-
+    wifi_util_info_print(WIFI_ANALYTICS, "SJY %s:%d hal_result %s\n", __func__, __LINE__, hal_result);
     wifi_util_info_print(WIFI_ANALYTICS, analytics_format_hal_core, "result", hal_result);
 
     return RETURN_OK;
@@ -663,6 +669,7 @@ int exec_event_analytics(wifi_app_t *apps, wifi_event_subtype_t sub_type, void *
 
 int webconfig_event_analytics(wifi_app_t *apps, wifi_event_subtype_t sub_type, void *arg)
 {
+    wifi_util_info_print(WIFI_ANALYTICS, "SJY Entering %s:%d and sub_type %d\n", __func__, __LINE__, sub_type);
     switch (sub_type) {
     case wifi_event_webconfig_set_data:
     case wifi_event_webconfig_set_data_dml:
@@ -672,6 +679,7 @@ int webconfig_event_analytics(wifi_app_t *apps, wifi_event_subtype_t sub_type, v
     case wifi_event_webconfig_data_to_hal_apply:
     case wifi_event_webconfig_data_to_apply_pending_queue:
     case wifi_event_webconfig_set_data_force_apply:
+        wifi_util_info_print(WIFI_ANALYTICS, "SJY %s:%d Entering wifi_event_webconfig_set_data_force_apply and calling analytics_event_webconfig_set_data\n", __func__, __LINE__);
         analytics_event_webconfig_set_data(apps, arg, sub_type);
         break;
 
@@ -680,6 +688,7 @@ int webconfig_event_analytics(wifi_app_t *apps, wifi_event_subtype_t sub_type, v
         break;
 
     case wifi_event_webconfig_hal_result:
+        wifi_util_info_print(WIFI_ANALYTICS, "SJY %s:%d Entering wifi_event_webconfig_hal_result and calling analytics_event_webconfig_hal_result\n", __func__, __LINE__);
         analytics_event_webconfig_hal_result(apps, arg);
         break;
 

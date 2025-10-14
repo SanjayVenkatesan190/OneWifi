@@ -1520,6 +1520,7 @@ int webconfig_hal_mesh_sta_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded
 
 int webconfig_hal_mesh_backhaul_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_data_t *data)
 {
+    wifi_util_info_print(WIFI_CTRL, "Entering %s:%d:\n", __func__, __LINE__);
     unsigned int num_vaps = 0;
     unsigned int ap_index;
     char *vap_name;
@@ -1529,11 +1530,13 @@ int webconfig_hal_mesh_backhaul_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_de
     for (UINT index = 0; index < getTotalNumberVAPs(); index++){
         ap_index = VAP_INDEX(mgr->hal_cap, index);
         if(isVapMeshBackhaul(ap_index)){
+            wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Found mesh backhaul VAP: %s\n", __func__, __LINE__, getVAPName(ap_index));
             vap_name = getVAPName(ap_index);
             vap_names[num_vaps] = vap_name;
             num_vaps++;
         }
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY Calling webconfig_hal_vap_apply_by_name from webconfig_hal_mesh_backhaul_vap_apply\n");
     return webconfig_hal_vap_apply_by_name(ctrl, data, vap_names, num_vaps);
 }
 
@@ -2442,6 +2445,7 @@ webconfig_error_t webconfig_ctrl_apply(webconfig_subdoc_t *doc, webconfig_subdoc
                     }
                 } else {
                     ctrl->webconfig_state |= ctrl_webconfig_state_vap_mesh_backhaul_cfg_rsp_pending;
+                    wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Calling webconfig_analytic_event_data_to_hal_apply\n", __func__, __LINE__);
                     webconfig_analytic_event_data_to_hal_apply(data);
                     ret = webconfig_hal_mesh_backhaul_vap_apply(ctrl, &data->u.decoded);
                     if (ret != RETURN_OK) {
