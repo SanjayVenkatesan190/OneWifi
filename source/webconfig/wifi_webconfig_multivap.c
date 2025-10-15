@@ -130,6 +130,8 @@ webconfig_error_t translate_to_multivap_subdoc(webconfig_t *config, webconfig_su
 
 webconfig_error_t encode_multivap_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
+    wifi_util_info_print(WIFI_WEBCONFIG, "SJY Entering %s: subdoc_type:%d\n", __FUNCTION__,
+        data->type);
     cJSON *json;
     cJSON *obj, *obj_array;
     wifi_vap_info_map_t *map;
@@ -142,7 +144,7 @@ webconfig_error_t encode_multivap_subdoc(webconfig_t *config, webconfig_subdoc_d
     char mac_string[18] = { 0 };
     int primary_macaddr_added = 0;
 
-    wifi_util_dbg_print(WIFI_WEBCONFIG, "%s: Enter subdoc_type:%d\n", __FUNCTION__, data->type);
+    wifi_util_dbg_print(WIFI_WEBCONFIG, "SJY %s: Enter subdoc_type:%d\n", __FUNCTION__, data->type);
 
     params = &data->u.decoded;
     json = cJSON_CreateObject();
@@ -157,7 +159,7 @@ webconfig_error_t encode_multivap_subdoc(webconfig_t *config, webconfig_subdoc_d
         break;
     case webconfig_subdoc_type_vap_5G:
         cJSON_AddStringToObject(json, "SubDocName", "Vap_5G");
-        radio_index = 1;
+        radio_index = 0;
         break;
     case webconfig_subdoc_type_vap_6G:
         cJSON_AddStringToObject(json, "SubDocName", "Vap_6G");
@@ -262,6 +264,9 @@ webconfig_error_t encode_multivap_subdoc(webconfig_t *config, webconfig_subdoc_d
             }
         } else if (is_vap_mesh_backhaul(&params->hal_cap.wifi_prop, vap->vap_index) &&
             (strlen(vap->vap_name) != 0)) {
+            wifi_util_info_print(WIFI_WEBCONFIG,
+                "%s:%d: Encoding mesh backhaul vap object for Radio index:%d\n", __func__, __LINE__,
+                radio_index);
             obj = cJSON_CreateObject();
             cJSON_AddItemToArray(obj_array, obj);
             if (encode_mesh_backhaul_vap_object(vap, rdk_vap, obj) != webconfig_error_none) {
