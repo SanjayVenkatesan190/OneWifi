@@ -725,6 +725,7 @@ bool is_force_apply_true(rdk_wifi_vap_info_t *rdk_vap_info) {
 
 int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_data_t *data, char **vap_names, unsigned int size)
 {
+    wifi_util_info_print(WIFI_CTRL, "SJY Entering %s:%d \n", __func__, __LINE__);
     unsigned int i, j, k;
     int tgt_radio_idx, tgt_vap_index;
     rdk_wifi_radio_t *radio;
@@ -744,23 +745,28 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
         if ((svc = get_svc_by_name(ctrl, vap_names[i])) == NULL) {
             continue;
         }
-
+        wifi_util_info_print(WIFI_MGR, "SJY %s:%d: Processing vap name: %s\n", __func__, __LINE__, vap_names[i]);
         if ((tgt_radio_idx = convert_vap_name_to_radio_array_index(&mgr->hal_cap.wifi_prop, vap_names[i])) == -1) {
-            wifi_util_error_print(WIFI_MGR, "%s:%d: Could not find radio index for vap name:%s\n",
+            wifi_util_error_print(WIFI_MGR, "SJY %s:%d: Could not find radio index for vap name:%s\n",
                         __func__, __LINE__, vap_names[i]);
             continue;
         }
-
+        wifi_util_info_print(WIFI_MGR, "SJY %s:%d: Found tgt_radio_idx:%d for vap name:%s\n", __func__, __LINE__,
+                tgt_radio_idx, vap_names[i]);
         tgt_vap_index = convert_vap_name_to_index(&mgr->hal_cap.wifi_prop, vap_names[i]);
         if (tgt_vap_index == -1) {
-            wifi_util_error_print(WIFI_MGR, "%s:%d: Could not find vap index for vap name:%s\n",
+            wifi_util_error_print(WIFI_MGR, "SJY %s:%d: Could not find vap index for vap name:%s\n",
                         __func__, __LINE__, vap_names[i]);
             continue;
         }
-
+        wifi_util_info_print(WIFI_MGR, "SJY %s:%d: Found tgt_vap_index:%d for vap name:%s\n", __func__, __LINE__,
+                tgt_vap_index, vap_names[i]);
         for (j = 0; j < getNumberRadios(); j++) {
             radio = &mgr->radio_config[j];
+            wifi_util_info_print(WIFI_MGR, "SJY %s:%d: The radio index is %d\n", __func__, __LINE__, radio->vaps.radio_index);
             if (radio->vaps.radio_index == (unsigned int)tgt_radio_idx) {
+                wifi_util_info_print(WIFI_MGR, "SJY %s:%d: Found tgt_radio_idx:%d for vap name:%s\n", __func__, __LINE__,
+                        tgt_radio_idx, vap_names[i]);
                 mgr_vap_map = &radio->vaps.vap_map;
                 found_target = true;
                 break;
@@ -769,7 +775,7 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
 
         if (found_target == false) {
             wifi_util_error_print(WIFI_MGR,
-                "%s:%d: Could not find tgt_radio_idx:%d for vap name:%s\n", __func__, __LINE__,
+                "SJY %s:%d: Could not find tgt_radio_idx:%d for vap name:%s\n", __func__, __LINE__,
                 tgt_radio_idx, vap_names[i]);
             continue;
         }
@@ -779,7 +785,9 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
         for (j = 0; j < mgr_vap_map->num_vaps; j++) {
             if (mgr_vap_map->vap_array[j].vap_index == (unsigned int)tgt_vap_index) {
                 mgr_vap_info = &mgr_vap_map->vap_array[j];
+                wifi_util_info_print(WIFI_MGR, "SJY %s:%d: The vap name and index of mgr_vap_info is %s and %d\n", __func__, __LINE__, mgr_vap_info->vap_name, mgr_vap_info->vap_index);
                 mgr_rdk_vap_info = &radio->vaps.rdk_vap_array[j];
+                wifi_util_info_print(WIFI_MGR, "SJY %s:%d: The vap name and index of mgr_rdk_vap_info is %s and %d\n", __func__, __LINE__, mgr_rdk_vap_info->vap_name, mgr_rdk_vap_info->vap_index);
                 found_target = true;
                 break;
             }
@@ -787,7 +795,7 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
 
         if (found_target == false) {
             wifi_util_error_print(WIFI_MGR,
-                "%s:%d: Could not find tgt_vap_index:%d for vap name:%s\n", __func__, __LINE__,
+                "SJY %s:%d: Could not find tgt_vap_index:%d for vap name:%s\n", __func__, __LINE__,
                 tgt_vap_index, vap_names[i]);
             continue;
         }
@@ -795,10 +803,14 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
         found_target = false;
 
         for (j = 0; j < getNumberRadios(); j++) {
+            wifi_util_info_print(WIFI_MGR, "SJY %s:%d: Searching for vap name: %s in radio index: %d\n", __func__, __LINE__, vap_names[i], j);
             for (k = 0; k < getNumberVAPsPerRadio(j); k++) {
+                wifi_util_info_print(WIFI_MGR, "SJY %s:%d: The radio index is %d and vap index is %d with vap name: %s\n", __func__, __LINE__, j, k, data->radios[j].vaps.vap_map.vap_array[k].vap_name);
                 if (strcmp(data->radios[j].vaps.vap_map.vap_array[k].vap_name, vap_names[i]) == 0) {
                     vap_info = &data->radios[j].vaps.vap_map.vap_array[k];
+                    wifi_util_info_print(WIFI_MGR, "SJY %s:%d: Found vap_info for vap name:%s and vap index is %d\n", __func__, __LINE__, vap_info->vap_name, vap_info->vap_index);
                     rdk_vap_info = &data->radios[j].vaps.rdk_vap_array[k];
+                    wifi_util_info_print(WIFI_MGR, "SJY %s:%d: Found rdk_vap_info for vap name:%s and vap index is %d\n", __func__, __LINE__, rdk_vap_info->vap_name, rdk_vap_info->vap_index);
                     found_target = true;
                     break;
                 }
@@ -822,6 +834,7 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
         // avoid redundant reconfiguration with STA disconnection.
         // For pods, STA is just like any other AP interface, deletion is allowed.
         if (isVapSTAMesh(tgt_vap_index)) {
+            wifi_util_info_print(WIFI_MGR,"SJY The vap is STA MESH so ignoring exists flag change \n");
             mgr_rdk_vap_info->exists = rdk_vap_info->exists;
         }
 
@@ -873,6 +886,7 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
                 wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: failed to apply\n", __func__, __LINE__);
                 memset(update_status, 0, sizeof(update_status));
                 snprintf(update_status, sizeof(update_status), "%s %s", vap_names[i], "fail");
+                wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Pushing wifi_event_webconfig_hal_result event inside update_fn\n", __func__, __LINE__);
                 apps_mgr_analytics_event(&ctrl->apps_mgr, wifi_event_type_webconfig, wifi_event_webconfig_hal_result, update_status);
                 free(p_tgt_vap_map);
                 p_tgt_vap_map = NULL;
@@ -881,6 +895,7 @@ int webconfig_hal_vap_apply_by_name(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
 
             memset(update_status, 0, sizeof(update_status));
             snprintf(update_status, sizeof(update_status), "%s %s", vap_names[i], (ret == RETURN_OK)?"success":"fail");
+            wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Pushing wifi_event_webconfig_hal_result event after update_fn\n", __func__, __LINE__);
             apps_mgr_analytics_event(&ctrl->apps_mgr, wifi_event_type_webconfig, wifi_event_webconfig_hal_result, update_status);
             if (vap_svc_is_public(tgt_vap_index)) {
                 wifi_util_dbg_print(WIFI_CTRL,"vapname is %s and %d \n",vap_info->vap_name,vap_info->u.bss_info.enabled);
@@ -1420,6 +1435,7 @@ int webconfig_hal_private_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
             num_vaps++;
         }
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY Calling webconfig_hal_vap_apply_by_name from webconfig_hal_private_vap_apply\n");
     return webconfig_hal_vap_apply_by_name(ctrl, data, vap_names, num_vaps);
 }
 
@@ -1439,6 +1455,7 @@ int webconfig_hal_home_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_dat
             num_vaps++;
         }
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY Calling webconfig_hal_vap_apply_by_name from webconfig_hal_xhs_vap_apply\n");
     return webconfig_hal_vap_apply_by_name(ctrl, data, vap_names, num_vaps);
 }
 
@@ -1458,6 +1475,7 @@ int webconfig_hal_xfinity_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_
             num_vaps++;
         }
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY Calling webconfig_hal_vap_apply_by_name from webconfig_hal_xfinity_vap_apply\n");
     return webconfig_hal_vap_apply_by_name(ctrl, data, vap_names, num_vaps);
 }
 
@@ -1477,6 +1495,7 @@ int webconfig_hal_lnf_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_data
             num_vaps++;
         }
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY Calling webconfig_hal_vap_apply_by_name from webconfig_hal_lnf_vap_apply\n");
     return webconfig_hal_vap_apply_by_name(ctrl, data, vap_names, num_vaps);
 }
 
@@ -1496,6 +1515,7 @@ int webconfig_hal_mesh_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_dat
             num_vaps++;
         }
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY Calling webconfig_hal_vap_apply_by_name from webconfig_hal_mesh_vap_apply\n");
     return webconfig_hal_vap_apply_by_name(ctrl, data, vap_names, num_vaps);
 }
 
@@ -1515,6 +1535,7 @@ int webconfig_hal_mesh_sta_vap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded
             num_vaps++;
         }
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY Calling webconfig_hal_vap_apply_by_name from webconfig_hal_mesh_sta_vap_apply\n");
     return webconfig_hal_vap_apply_by_name(ctrl, data, vap_names, num_vaps);
 }
 
@@ -1580,6 +1601,7 @@ int webconfig_hal_multivap_apply(wifi_ctrl_t *ctrl, webconfig_subdoc_decoded_dat
         vap_names[num_vaps] = mgr_vap_map->rdk_vap_array[index].vap_name;
         num_vaps++;
     }
+    wifi_util_info_print(WIFI_CTRL, "SJY Calling webconfig_hal_vap_apply_by_name from webconfig_hal_multivap_apply\n");
     return webconfig_hal_vap_apply_by_name(ctrl, data, vap_names, num_vaps);
 }
 
