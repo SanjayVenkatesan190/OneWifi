@@ -305,6 +305,7 @@ void CosaDmlWiFiGetFromPSM(void)
     wifi_global_param_t global_cfg;
     UINT vap_index;
 
+    wifi_util_error_print(WIFI_PSM,"%s:%d Entering...\r\n", __func__, __LINE__);
     init_mac_filter_hash_map();
 
     for (unsigned int instance_number = 1; instance_number <= getNumberRadios(); instance_number++) {
@@ -637,19 +638,22 @@ void CosaDmlWiFiGetFromPSM(void)
             if (str != NULL) {
                 unsigned int mf_mode = _ansc_atoi(str);
                 if (mf_mode == 0) {
+                    wifi_util_info_print(WIFI_PSM,"SJY %s:%d: Setting mac_filter enable to false by default from PSM and so black list is being set\n", __func__, __LINE__);
                     psm_vap_param->mac_filter_enable = false;
                     psm_vap_param->mac_filter_mode  = wifi_mac_filter_mode_black_list;
                 } else if(mf_mode == 1) {
+                    wifi_util_info_print(WIFI_PSM,"SJY %s:%d: Setting mac_filter enable to true by default from PSM and so white list is being set\n", __func__, __LINE__);
                     psm_vap_param->mac_filter_enable = true;
                     psm_vap_param->mac_filter_mode  = wifi_mac_filter_mode_white_list;
                 } else if(mf_mode == 2) {
+                    wifi_util_info_print(WIFI_PSM,"SJY %s:%d: Setting mac_filter enable to true by default from PSM and so black list is being set\n", __func__, __LINE__);
                     psm_vap_param->mac_filter_enable = true;
                     psm_vap_param->mac_filter_mode  = wifi_mac_filter_mode_black_list;
                 }
-                wifi_util_dbg_print(WIFI_PSM,"cfg->mac_filter_mode is %d and str is %s and atoi(str) is %d\n", psm_vap_param->mac_filter_mode, str, _ansc_atoi(str));
+                wifi_util_dbg_print(WIFI_PSM,"SJY cfg->mac_filter_mode is %d and str is %s and atoi(str) is %d\n", psm_vap_param->mac_filter_mode, str, _ansc_atoi(str));
             } else {
                 psm_vap_param->mac_filter_mode = bss_cfg->mac_filter_mode;
-                wifi_util_dbg_print(WIFI_PSM,":%s:%d set default value:%d : %d\r\n", __func__, __LINE__, bss_cfg->mac_filter_mode, psm_vap_param->mac_filter_mode);
+                wifi_util_dbg_print(WIFI_PSM,"SJY %s:%d set default value:%d : %d\r\n", __func__, __LINE__, bss_cfg->mac_filter_mode, psm_vap_param->mac_filter_mode);
             }
 
             memset(recName, 0, sizeof(recName));

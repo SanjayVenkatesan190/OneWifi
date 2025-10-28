@@ -2785,6 +2785,9 @@ int wifidb_update_wifi_vap_info(char *vap_name, wifi_vap_info_t *config,
         cfg.rapid_connect_enabled = config->u.bss_info.rapidReconnectEnable;
         cfg.rapid_connect_threshold = config->u.bss_info.rapidReconnThreshold;
         cfg.vap_stats_enable = config->u.bss_info.vapStatsEnable;
+        wifi_util_info_print(WIFI_DB,"SJY %s:%d: Mac filter enabled=%d mode=%d\n", __func__, __LINE__,
+            config->u.bss_info.mac_filter_enable,
+            config->u.bss_info.mac_filter_mode);
         cfg.mac_filter_enabled = config->u.bss_info.mac_filter_enable;
         cfg.mac_filter_mode = config->u.bss_info.mac_filter_mode;
         cfg.wmm_enabled = config->u.bss_info.wmm_enabled;
@@ -7173,6 +7176,7 @@ int wifidb_init_vap_config_default(int vap_index, wifi_vap_info_t *config,
             cfg.u.bss_info.mac_filter_enable = true;
             cfg.u.bss_info.mac_filter_mode = wifi_mac_filter_mode_black_list;
         } else {
+            wifi_util_error_print(WIFI_DB,"SJY %s:%d: Disabling MAC filter for vap_index %d in default case\n", __func__, __LINE__, vap_index);
             cfg.u.bss_info.mac_filter_enable = false;
         }
         cfg.u.bss_info.UAPSDEnabled = true;
@@ -8840,6 +8844,7 @@ int get_vap_params_from_psm(unsigned int vap_index, wifi_vap_info_t *vap_config,
     if (str != NULL) {
         unsigned int mf_mode = atoi(str);
         if (mf_mode == 0) {
+            wifi_util_info_print(WIFI_MGR,"SJY %s:%d: Setting mac_filter enable to false by default from PSM and so black list is being set\n", __func__, __LINE__);
             bss_cfg->mac_filter_enable = false;
             bss_cfg->mac_filter_mode  = wifi_mac_filter_mode_black_list;
         } else if(mf_mode == 1) {
@@ -8849,9 +8854,9 @@ int get_vap_params_from_psm(unsigned int vap_index, wifi_vap_info_t *vap_config,
             bss_cfg->mac_filter_enable = true;
             bss_cfg->mac_filter_mode  = wifi_mac_filter_mode_black_list;
         }
-        wifi_util_info_print(WIFI_MGR,"bss_cfg->mac_filter_mode is %d and str is %s and atoi(str) is %d\n", bss_cfg->mac_filter_mode, str, atoi(str));
+        wifi_util_info_print(WIFI_MGR,"SJY bss_cfg->mac_filter_mode is %d and str is %s and atoi(str) is %d\n", bss_cfg->mac_filter_mode, str, atoi(str));
     } else {
-        wifi_util_error_print(WIFI_MGR,"%s:%d mac_filter_mode not found for:%s\r\n", __func__, __LINE__, recName);
+        wifi_util_error_print(WIFI_MGR,"SJY %s:%d mac_filter_mode not found for:%s\r\n", __func__, __LINE__, recName);
     }
 
     memset(recName, 0, sizeof(recName));

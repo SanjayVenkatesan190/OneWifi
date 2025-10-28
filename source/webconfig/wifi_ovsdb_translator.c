@@ -890,7 +890,9 @@ webconfig_error_t translator_ovsdb_init(webconfig_subdoc_data_t *data)
         default_vap_info->u.bss_info.bssTransitionActivated = false;
         default_vap_info->u.bss_info.nbrReportActivated = false;
         default_vap_info->u.bss_info.rapidReconnThreshold = 180;
+        wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to false by default in ovsdb\n", __func__, __LINE__);
         default_vap_info->u.bss_info.mac_filter_enable = false;
+        wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter mode to black_list by default\n", __func__, __LINE__);
         default_vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_mode_black_list;
         default_vap_info->u.bss_info.UAPSDEnabled = true;
         default_vap_info->u.bss_info.wmmNoAck = false;
