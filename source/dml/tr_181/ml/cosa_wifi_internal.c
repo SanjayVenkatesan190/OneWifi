@@ -305,7 +305,7 @@ void CosaDmlWiFiGetFromPSM(void)
     wifi_global_param_t global_cfg;
     UINT vap_index;
 
-    wifi_util_error_print(WIFI_PSM,"%s:%d Entering...\r\n", __func__, __LINE__);
+    wifi_util_error_print(WIFI_PSM,"SJY %s:%d Entering...\r\n", __func__, __LINE__);
     init_mac_filter_hash_map();
 
     for (unsigned int instance_number = 1; instance_number <= getNumberRadios(); instance_number++) {
