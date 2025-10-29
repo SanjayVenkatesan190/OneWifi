@@ -1242,37 +1242,47 @@ int vap_mode_conversion(wifi_vap_mode_t *vapmode_enum, char *vapmode_str, size_t
 
 int macfilter_conversion(char *mac_list_type, size_t string_len,  wifi_vap_info_t *vap_info, unsigned int conv_type)
 {
+    wifi_util_info_print(WIFI_WEBCONFIG, "SJY Enters %s:%d:\n", __func__, __LINE__);
     if ((mac_list_type == NULL) || (vap_info == NULL)) {
         wifi_util_dbg_print(WIFI_WEBCONFIG,"%s:%d: Input arguments is NULL \n",__func__, __LINE__);
         return RETURN_ERR;
     }
 
     if (conv_type == STRING_TO_ENUM) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Enters STRING_TO_ENUM condition\n", __func__, __LINE__);
         if (strncmp(mac_list_type, "whitelist", strlen("whitelist")) == 0) {
+            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to true and mode to white_list\n", __func__, __LINE__);
             vap_info->u.bss_info.mac_filter_enable = TRUE;
             vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_mode_white_list;
             return RETURN_OK;
         } else if (strncmp(mac_list_type, "blacklist", strlen("blacklist")) == 0) {
+            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to true and mode to black_list\n", __func__, __LINE__);
             vap_info->u.bss_info.mac_filter_enable = TRUE;
             vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_mode_black_list;
             return RETURN_OK;
         } else if (strncmp(mac_list_type, "none", strlen("none")) == 0) {
+            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to false and mode to black_list\n", __func__, __LINE__);
             vap_info->u.bss_info.mac_filter_enable = FALSE;
             vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_mode_black_list;
             return RETURN_OK;
         } else if (mac_list_type[0] == '\0') {
+            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Empty string received, Setting mac_filter enable to false\n", __func__, __LINE__);
             vap_info->u.bss_info.mac_filter_enable = FALSE;
             vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_mode_black_list;
             return RETURN_OK;
         }
     } else if (conv_type == ENUM_TO_STRING) {
+        wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Enters ENUM_TO_STRING condition\n", __func__, __LINE__);
         if ((vap_info->u.bss_info.mac_filter_enable == TRUE) && (vap_info->u.bss_info.mac_filter_mode == wifi_mac_filter_mode_white_list)) {
+            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to true and mode to white_list\n", __func__, __LINE__);
             snprintf(mac_list_type, string_len, "whitelist");
             return RETURN_OK;
         } else if ((vap_info->u.bss_info.mac_filter_enable == TRUE) && (vap_info->u.bss_info.mac_filter_mode == wifi_mac_filter_mode_black_list)) {
+            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to true and mode to black_list\n", __func__, __LINE__);
             snprintf(mac_list_type, string_len, "blacklist");
             return RETURN_OK;
         } else if ((vap_info->u.bss_info.mac_filter_enable == FALSE)) {
+            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to false\n", __func__, __LINE__);
             snprintf(mac_list_type, string_len, "none");
             return RETURN_OK;
         }

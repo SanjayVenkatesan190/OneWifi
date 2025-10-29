@@ -890,12 +890,10 @@ webconfig_error_t translator_ovsdb_init(webconfig_subdoc_data_t *data)
         default_vap_info->u.bss_info.bssTransitionActivated = false;
         default_vap_info->u.bss_info.nbrReportActivated = false;
         default_vap_info->u.bss_info.rapidReconnThreshold = 180;
-        if (!is_vap_private(&hal_cap->wifi_prop, vapIndex)) {
-            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to false by default in ovsdb\n", __func__, __LINE__);
-            default_vap_info->u.bss_info.mac_filter_enable = false;
-            wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter mode to black_list by default\n", __func__, __LINE__);
-            default_vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_mode_black_list;
-        }
+        wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to false by default in ovsdb\n", __func__, __LINE__);
+        default_vap_info->u.bss_info.mac_filter_enable = false;
+        wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter mode to whitelist instead of black_list by default\n", __func__, __LINE__);
+        default_vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_white_list; // changing to white list to check results.
         default_vap_info->u.bss_info.UAPSDEnabled = true;
         default_vap_info->u.bss_info.wmmNoAck = false;
         default_vap_info->u.bss_info.wepKeyLength = 128;
@@ -2161,6 +2159,7 @@ static webconfig_error_t translate_vap_info_to_ovsdb_sec_new(wifi_vap_info_t *va
 static webconfig_error_t translate_vap_info_to_ovsdb_sec(wifi_vap_info_t *vap,
     struct schema_Wifi_VIF_Config *vap_row, bool sec_schema_is_legacy)
 {
+    wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Enter\n", __func__, __LINE__);
     webconfig_error_t ret;
 
     if (vap_row == NULL || vap == NULL) {
@@ -2168,7 +2167,7 @@ static webconfig_error_t translate_vap_info_to_ovsdb_sec(wifi_vap_info_t *vap,
             __func__, __LINE__);
         return webconfig_error_translate_to_ovsdb;
     }
-
+    wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Calling macfilter_conversion\n", __func__, __LINE__);
     if (macfilter_conversion(vap_row->mac_list_type, sizeof(vap_row->mac_list_type),
         vap, ENUM_TO_STRING) != RETURN_OK) {
         wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d failed to convert MAC filter: "
@@ -2945,6 +2944,7 @@ static webconfig_error_t translate_vap_info_to_vif_state_sec_new(wifi_vap_info_t
 static webconfig_error_t translate_vap_info_to_vif_state_sec(wifi_vap_info_t *vap,
     struct schema_Wifi_VIF_State *vap_row, bool sec_schema_is_legacy)
 {
+    wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Enter\n", __func__, __LINE__);
     webconfig_error_t ret;
 
     if (vap_row == NULL || vap == NULL) {
@@ -2952,7 +2952,7 @@ static webconfig_error_t translate_vap_info_to_vif_state_sec(wifi_vap_info_t *va
             __func__, __LINE__);
         return webconfig_error_translate_to_ovsdb;
     }
-
+    wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Calling macfilter_conversion\n", __func__, __LINE__);
     if (macfilter_conversion(vap_row->mac_list_type, sizeof(vap_row->mac_list_type),
         vap, ENUM_TO_STRING) != RETURN_OK) {
         wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d failed to convert MAC filter: "
@@ -3828,13 +3828,14 @@ static webconfig_error_t translate_ovsdb_to_vap_info_sec_new(const struct
 static webconfig_error_t translate_ovsdb_to_vap_info_sec(const struct
     schema_Wifi_VIF_Config *vap_row, wifi_vap_info_t *vap, bool sec_schema_is_legacy)
 {
+    wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d Entering function\n", __func__, __LINE__);
     webconfig_error_t ret;
 
     if (vap_row == NULL || vap == NULL) {
         wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d input argument is NULL\n", __func__, __LINE__);
         return webconfig_error_translate_from_ovsdb;
     }
-
+    wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d Calling macfilter_conversion\n", __func__, __LINE__);
     if (macfilter_conversion((char *)vap_row->mac_list_type, sizeof(vap_row->mac_list_type),
         vap, STRING_TO_ENUM) != RETURN_OK) {
         wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d failed to convert MAC filter: "

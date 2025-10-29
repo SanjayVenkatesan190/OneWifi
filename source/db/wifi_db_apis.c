@@ -2785,9 +2785,10 @@ int wifidb_update_wifi_vap_info(char *vap_name, wifi_vap_info_t *config,
         cfg.rapid_connect_enabled = config->u.bss_info.rapidReconnectEnable;
         cfg.rapid_connect_threshold = config->u.bss_info.rapidReconnThreshold;
         cfg.vap_stats_enable = config->u.bss_info.vapStatsEnable;
-        wifi_util_info_print(WIFI_DB,"SJY %s:%d: Mac filter enabled=%d mode=%d\n", __func__, __LINE__,
+        wifi_util_info_print(WIFI_DB,"SJY %s:%d: Mac filter enabled=%d mode=%d for vap index=%d\n", __func__, __LINE__,
             config->u.bss_info.mac_filter_enable,
-            config->u.bss_info.mac_filter_mode);
+            config->u.bss_info.mac_filter_mode,
+            l_vap_index);
         cfg.mac_filter_enabled = config->u.bss_info.mac_filter_enable;
         cfg.mac_filter_mode = config->u.bss_info.mac_filter_mode;
         cfg.wmm_enabled = config->u.bss_info.wmm_enabled;

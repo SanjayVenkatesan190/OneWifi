@@ -1101,6 +1101,7 @@ static void finalize_kick_config_change(int vap_index, wifi_vap_info_t *vap_info
         }
 
 #ifdef NL80211_ACL
+        wifi_util_info_print(WIFI_CTRL, "SJY %s:%d: Calling nl80211_set_acl from finalize_kick_config_change with enable value %d and filter mode %d for vap index:%d\n", __func__, __LINE__, vap_info->u.bss_info.mac_filter_enable, filter_mode, vap_info->vap_index);
         if (wifi_hal_setApMacAddressControlMode(vap_index, filter_mode) == RETURN_OK) {
 #else
         if (wifi_setApMacAddressControlMode(vap_index, filter_mode) == RETURN_OK) {
