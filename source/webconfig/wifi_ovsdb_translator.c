@@ -893,7 +893,7 @@ webconfig_error_t translator_ovsdb_init(webconfig_subdoc_data_t *data)
         wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter enable to false by default in ovsdb\n", __func__, __LINE__);
         default_vap_info->u.bss_info.mac_filter_enable = false;
         wifi_util_info_print(WIFI_WEBCONFIG, "SJY %s:%d: Setting mac_filter mode to whitelist instead of black_list by default\n", __func__, __LINE__);
-        default_vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_white_list; // changing to white list to check results.
+        default_vap_info->u.bss_info.mac_filter_mode = wifi_mac_filter_mode_white_list; // changing to white list to check results.
         default_vap_info->u.bss_info.UAPSDEnabled = true;
         default_vap_info->u.bss_info.wmmNoAck = false;
         default_vap_info->u.bss_info.wepKeyLength = 128;
