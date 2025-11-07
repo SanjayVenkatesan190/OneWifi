@@ -1194,7 +1194,6 @@ CosaWifiInitialize
     wifi_util_dbg_print(WIFI_DMCLI, "%s: DML cahce %s\n", __FUNCTION__,webconfig_dml->radios[0].vaps.vap_map.vap_array[0].u.bss_info.ssid);
     CcspWifiTrace(("RDK_LOG_WARN, RDKB_SYSTEM_BOOT_UP_LOG : CosaWifiInitialize - WiFi initialization complete. \n"));
     get_stubs_descriptor()->t2_event_d_fn("WIFI_INFO_CosaWifiinit",1);
-
     set_dml_init_status(true);
     getParamWifiRegionUpdateSource();
 #ifndef NEWPLATFORM_PORT
@@ -1204,7 +1203,7 @@ CosaWifiInitialize
 #endif // NEWPLATFORM_PORT
 
 EXIT:
-        CcspTraceWarning(("CosaWifiInitialize - returnStatus %ld\n", returnStatus));
+        //CcspTraceWarning(("CosaWifiInitialize - returnStatus %ld\n", returnStatus));
 
 	return returnStatus;
 }
