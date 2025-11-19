@@ -1145,8 +1145,7 @@ CosaWifiInitialize
     if ( !pPoamIrepFoCOSA )
     {
         returnStatus = ANSC_STATUS_FAILURE;
-        CcspTraceWarning(("CosaWifiInitialize - hIrepFolderCOSA failed\n"));
-
+        CcspWifiTrace(("RDK_LOG_WARN, CosaWifiInitialize - hIrepFolderCOSA failed\n"));
         goto  EXIT;
     }
 
@@ -1172,9 +1171,8 @@ CosaWifiInitialize
     if ( !pPoamIrepFoWifi )
     {
         returnStatus = ANSC_STATUS_FAILURE;
-        CcspTraceWarning(("CosaWifiInitialize - pPoamIrepFoWifi failed\n"));
-
-        goto  EXIT;
+        CcspWifiTrace(("RDK_LOG_WARN, CosaWifiInitialize - pPoamIrepFoWifi failed\n"));
+        goto EXIT;
     }
     else
     {
@@ -1210,7 +1208,7 @@ CosaWifiInitialize
 #endif // NEWPLATFORM_PORT
 
 EXIT:
-        CcspTraceWarning(("CosaWifiInitialize - returnStatus %ld\n", returnStatus));
+        CcspWifiTrace(("RDK_LOG_WARN, CosaWifiInitialize - returnStatus %lu\n", returnStatus));
 
 	return returnStatus;
 }
