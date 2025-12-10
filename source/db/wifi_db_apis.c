@@ -243,6 +243,7 @@ void callback_Wifi_Rfc_Config(ovsdb_update_monitor_t *mon, struct schema_Wifi_Rf
         rfc_param->dfs_rfc = new_rec->dfs_rfc;
         rfc_param->wpa3_rfc = new_rec->wpa3_rfc;
         rfc_param->levl_enabled_rfc = new_rec->levl_enabled_rfc;
+        wifi_util_info_print(WIFI_DB, "SJY %s:%d: 2G 802.11ax RFC value is %d\n", __func__, __LINE__, new_rec->twoG80211axEnable_rfc);
         rfc_param->twoG80211axEnable_rfc = new_rec->twoG80211axEnable_rfc;
         rfc_param->hotspot_open_2g_last_enabled = new_rec->hotspot_open_2g_last_enabled;
         rfc_param->hotspot_open_5g_last_enabled = new_rec->hotspot_open_5g_last_enabled;
@@ -1816,6 +1817,7 @@ void wifidb_print_interworking_config ()
 **************************************************************************************/
 int wifidb_get_rfc_config(UINT rfc_id, wifi_rfc_dml_parameters_t *rfc_info)
 {
+    wifi_util_info_print(WIFI_DB,"SJY Entering %s:%d\n",__func__, __LINE__);
     struct schema_Wifi_Rfc_Config  *pcfg;
     json_t *where;
     int count; 
@@ -1839,10 +1841,13 @@ int wifidb_get_rfc_config(UINT rfc_id, wifi_rfc_dml_parameters_t *rfc_info)
     rfc_info->memwraptool_app_rfc = pcfg->memwraptool_app_rfc;
     rfc_info->levl_enabled_rfc = pcfg->levl_enabled_rfc;
 #ifdef ALWAYS_ENABLE_AX_2G
+    wifi_util_info_print(WIFI_DB,"SJY %s:%d: ALWAYS_ENABLE_AX_2G is defined , setting 2G 802.11ax RFC as true\n",__func__, __LINE__);
     rfc_info->twoG80211axEnable_rfc = true;
 #else
+    wifi_util_info_print(WIFI_DB,"SJY %s:%d: ALWAYS_ENABLE_AX_2G is not defined , setting 2G 802.11ax RFC as false\n",__func__, __LINE__);
     rfc_info->twoG80211axEnable_rfc = pcfg->twoG80211axEnable_rfc;
 #endif
+    wifi_util_info_print(WIFI_DB,"SJY %s:%d: twoG80211axEnable_rfc=%d\n",__func__, __LINE__,rfc_info->twoG80211axEnable_rfc);
     rfc_info->hotspot_open_2g_last_enabled= pcfg->hotspot_open_2g_last_enabled;
     rfc_info->hotspot_open_5g_last_enabled= pcfg->hotspot_open_5g_last_enabled;
     rfc_info->hotspot_open_6g_last_enabled= pcfg->hotspot_open_6g_last_enabled;
@@ -1854,6 +1859,7 @@ int wifidb_get_rfc_config(UINT rfc_id, wifi_rfc_dml_parameters_t *rfc_info)
     rfc_info->tcm_enabled_rfc = pcfg->tcm_enabled_rfc;
     rfc_info->wpa3_compatibility_enable = pcfg->wpa3_compatibility_enable;
     free(pcfg);
+    wifi_util_info_print(WIFI_DB,"SJY %s:%d Exiting and return 0\n",__func__, __LINE__);
     return 0;
 }
 
@@ -4510,6 +4516,7 @@ void wifidb_init_gas_config_default(wifi_GASConfiguration_t *config)
 ********************************************** ****************************************/
 void wifidb_init_rfc_config_default(wifi_rfc_dml_parameters_t *config)
 {
+    wifi_util_info_print(WIFI_DB,"SJY Entering %s:%d \n",__func__, __LINE__);
     wifi_rfc_dml_parameters_t rfc_config = {0};
     wifi_mgr_t *g_wifidb;
     g_wifidb = get_wifimgr_obj();
@@ -4527,10 +4534,13 @@ void wifidb_init_rfc_config_default(wifi_rfc_dml_parameters_t *config)
     rfc_config.wpa3_rfc = false;
 #endif
 #if defined(ALWAYS_ENABLE_AX_2G) || defined(NEWPLATFORM_PORT)
+    wifi_util_info_print(WIFI_DB,"SJY %s:%d: ALWAYS_ENABLE_AX_2G and NEWPLATFORM_PORT is defined , setting 2G 802.11ax RFC as true\n",__func__, __LINE__);
     rfc_config.twoG80211axEnable_rfc = true;
 #else
+    wifi_util_info_print(WIFI_DB,"SJY %s:%d: ALWAYS_ENABLE_AX_2G is not defined , setting 2G 802.11ax RFC as false\n",__func__, __LINE__);
     rfc_config.twoG80211axEnable_rfc = false;
 #endif
+    wifi_util_info_print(WIFI_DB,"SJY %s:%d: 2G 802.11ax RFC value is set to :%d\n",__func__, __LINE__, rfc_config.twoG80211axEnable_rfc);
     rfc_config.hotspot_open_2g_last_enabled = false;
     rfc_config.hotspot_open_5g_last_enabled = false;
     rfc_config.hotspot_open_6g_last_enabled = false;
@@ -7618,8 +7628,9 @@ void init_wifidb_data()
     else {
         dbwritten = true;
         if (wifidb_get_rfc_config(0,rfc_param) != 0) {
-            wifi_util_error_print(WIFI_DB,"%s:%d: Error getting RFC config\n",__func__, __LINE__);
+            wifi_util_error_print(WIFI_DB,"SJY %s:%d: Error getting RFC config\n",__func__, __LINE__);
         }
+        wifi_util_info_print(WIFI_DB, "SJY %s:%d: twoG80211axEnable_rfc = %d after get rfc\n", __func__, __LINE__, rfc_param->twoG80211axEnable_rfc);
 #ifdef ALWAYS_ENABLE_AX_2G
         wifidb_update_rfc_config(0, rfc_param);
 #endif

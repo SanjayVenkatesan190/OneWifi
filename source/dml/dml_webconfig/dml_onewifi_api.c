@@ -1670,10 +1670,11 @@ bool wifi_factory_reset(bool factory_reset_all_vaps)
     wifi_radio_operationParam_t *wifiRadioOperParam = NULL;
     unsigned int vap_index;
     wifi_radio_operationParam_t rcfg;
+    wifi_rfc_dml_parameters_t *rfc_param = NULL;
     wifi_radio_feature_param_t *wifiRadioFeatParam = NULL;
     wifi_radio_feature_param_t fcfg;
 
-    wifi_util_info_print(WIFI_DMCLI,"Enter %s:%d \n",__func__, __LINE__);
+    wifi_util_info_print(WIFI_DMCLI,"SJY Enter %s:%d \n",__func__, __LINE__);
     if (global_wifi_config == NULL) {
         wifi_util_dbg_print(WIFI_DMCLI,"%s:%d Unable to get Global Config\n", __FUNCTION__,__LINE__);
         return FALSE;
@@ -1689,11 +1690,7 @@ bool wifi_factory_reset(bool factory_reset_all_vaps)
         }
         wifidb_init_radio_config_default(i,&rcfg,&fcfg);
 
-        wifi_rfc_dml_parameters_t *rfc_param = get_wifi_db_rfc_parameters();
-        if (wifidb_get_rfc_config(0,rfc_param) != 0) {
-            wifi_util_error_print(WIFI_DMCLI,"%s:%d: Error getting RFC config\n",__func__, __LINE__);
-        }
-
+        wifidb_init_rfc_config_default(rfc_param);
         //Update the 2.4Ghz radio AX mode based on the RFC twoG80211axEnable_rfc
         if (WIFI_FREQUENCY_2_4_BAND == rcfg.band) {
             if(rfc_param->twoG80211axEnable_rfc) {
