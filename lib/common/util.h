@@ -51,7 +51,7 @@ extern "C"
     _a > _b ? _a : _b; })
 #endif
 #define ONEWIFI_FR_FLAG  "/nvram/wifi/onewifi_factory_reset_flag"
-#define ONEWIFI_UPGRADE_AND_FR_DONE_FLAG "/nvram/.image_upgrade_and_FR_done"
+#define ONEWIFI_IMAGE_UPGRADE_AND_FR_DONE_FLAG "/nvram/.image_upgrade_and_FR_done"
 #define ONEWIFI_MIGRATION_FLAG "/nvram/wifi_db_update_required"
 #define ONEWIFI_FR_REBOOT_FLAG "/tmp/onewifi_factory_reset_reboot_flag"
 #define ONEWIFI_FR_WIFIDB_RESET_DONE_FLAG "/tmp/onewifi_fr_wifidb_reset_done_flag"
