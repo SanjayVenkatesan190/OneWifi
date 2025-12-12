@@ -7626,14 +7626,17 @@ void init_wifidb_data()
         wifi_util_info_print(WIFI_DB,"%s:%d FactoryReset done. wifidb updated with default values.\n",__func__, __LINE__);
     }
     else {
-        dbwritten = true;
+        wifi_util_info_print(WIFI_DB,"SJY %s:%d Normal Reboot: Reading wifidb values from persistent storage\n",__func__, __LINE__);
         if (wifidb_get_rfc_config(0,rfc_param) != 0) {
             wifi_util_error_print(WIFI_DB,"SJY %s:%d: Error getting RFC config\n",__func__, __LINE__);
         }
         wifi_util_info_print(WIFI_DB, "SJY %s:%d: twoG80211axEnable_rfc = %d after get rfc\n", __func__, __LINE__, rfc_param->twoG80211axEnable_rfc);
 #ifdef ALWAYS_ENABLE_AX_2G
+        wifi_util_info_print(WIFI_DB, "SJY %s:%d: Calling update rfc function after initializing the twoG80211axEnable_rfc %d\n", __func__, __LINE__, rfc_param->twoG80211axEnable_rfc);
         wifidb_update_rfc_config(0, rfc_param);
 #endif
+        wifi_util_info_print(WIFI_DB, "SJY %s:%d: Updated twoG80211axEnable_rfc as %d after update rfc and setting dbwritten to true\n", __func__, __LINE__, rfc_param->twoG80211axEnable_rfc);
+        dbwritten = true;
         get_wifi_country_code_from_bootstrap_json(country_code, COUNTRY_CODE_LEN);
         pthread_mutex_lock(&g_wifidb->data_cache_lock);
         for (r_index = 0; r_index < num_radio; r_index++) {
