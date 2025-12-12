@@ -7562,6 +7562,12 @@ void init_wifidb_data()
         return;
     }
     wifidb_init_default_value();
+    if (access(ONEWIFI_IMAGE_UPGRADE_AND_FR_DONE_FLAG, F_OK) == 0) {
+        wifi_util_info_print(WIFI_DB,"SJY %s:%d Image Upgrade and Factory Reset flag is present in nvram\n",__func__, __LINE__);
+    }
+    else {
+        wifi_util_info_print(WIFI_DB,"SJY %s:%d Image Upgrade and Factory Reset flag is not present in nvram\n",__func__, __LINE__);
+    }
 
     if ((access(ONEWIFI_FR_REBOOT_FLAG, F_OK) == 0) && (access(ONEWIFI_FR_WIFIDB_RESET_DONE_FLAG, F_OK) != 0)) {
         wifidb_update_rfc_config(0, rfc_param);
