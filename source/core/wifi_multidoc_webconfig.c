@@ -399,6 +399,7 @@ static int decode_amenities_blob(wifi_vap_info_t *vap_info, cJSON *amenities_blo
 
 static int update_vap_info(void *data, wifi_vap_info_t *vap_info,pErr execRetVal)
 {
+    wifi_util_info_print(WIFI_CTRL,"SJY Enter %s\n", __func__);
     int status = RETURN_OK;
     char *suffix;
     char band[8];
@@ -413,6 +414,8 @@ static int update_vap_info(void *data, wifi_vap_info_t *vap_info,pErr execRetVal
         wifi_util_error_print(WIFI_CTRL, "%s: json parse failure\n", __func__);
         return RETURN_ERR;
     }
+    // print the blob for debugging
+    wifi_util_dbg_print(WIFI_CTRL, "SJY %s: blob data: %s\n", __func__, (char *)data);
 
     suffix = strrchr(vap_info->vap_name, (int)'_');
     if (suffix == NULL) {
@@ -435,7 +438,7 @@ static int update_vap_info(void *data, wifi_vap_info_t *vap_info,pErr execRetVal
         snprintf(ssid, sizeof(wifi_vap_name_t), "home_ssid%s", band);
         snprintf(security, sizeof(wifi_vap_name_t), "home_security%s", band);
     } else {
-        wifi_util_error_print(WIFI_CTRL, "%s: No SSID and security info\n", __func__);
+        wifi_util_error_print(WIFI_CTRL, "SJY %s: No SSID and security info\n", __func__);
         status = RETURN_ERR;
         goto done;
    }
