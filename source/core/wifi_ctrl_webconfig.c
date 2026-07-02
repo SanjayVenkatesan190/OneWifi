@@ -492,6 +492,24 @@ int webconfig_analyze_pending_states(wifi_ctrl_t *ctrl)
         return RETURN_OK;
     }
 
+    /* CRITICAL FIX for memory leak: Process associated_clients with high priority
+     * to prevent diff_map accumulation during rapid client connect/disconnect.
+     * Without this, cleanup is deferred 30+ seconds causing 46MB+ memory spikes.
+     */
+    if (ctrl->webconfig_state & ctrl_webconfig_state_associated_clients_cfg_rsp_pending) {
+        wifi_util_info_print(WIFI_CTRL, "%s:%d - Priority cleanup: associated_clients state:0x%x\r\n",
+                            __func__, __LINE__, ctrl->webconfig_state);
+        webconfig_send_associate_status(ctrl);
+        return RETURN_OK;
+    }
+
+    if (ctrl->webconfig_state & ctrl_webconfig_state_associated_clients_full_cfg_rsp_pending) {
+        wifi_util_info_print(WIFI_CTRL, "%s:%d - Priority cleanup: associated_clients_full state:0x%x\r\n",
+                            __func__, __LINE__, ctrl->webconfig_state);
+        webconfig_send_full_associate_status(ctrl);
+        return RETURN_OK;
+    }
+
     do {
         pending_state <<= 1;
         if (pending_state >= ctrl_webconfig_state_max) {
@@ -595,15 +613,6 @@ int webconfig_analyze_pending_states(wifi_ctrl_t *ctrl)
         case ctrl_webconfig_state_wifi_config_cfg_rsp_pending:
             type = webconfig_subdoc_type_wifi_config;
             webconfig_send_wifi_config_status(ctrl);
-            break;
-        case ctrl_webconfig_state_associated_clients_cfg_rsp_pending:
-            type = webconfig_subdoc_type_associated_clients;
-            webconfig_send_associate_status(ctrl);
-            break;
-
-        case ctrl_webconfig_state_associated_clients_full_cfg_rsp_pending:
-            type = webconfig_subdoc_type_associated_clients;
-            webconfig_send_full_associate_status(ctrl);
             break;
 
         case ctrl_webconfig_state_blaster_cfg_complete_rsp_pending:
