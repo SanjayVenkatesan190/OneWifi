@@ -894,43 +894,58 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
     }
 
     if (args->scan_mode == WIFI_RADIO_SCAN_MODE_ONCHAN) {
-        if (get_on_channel_scan_list(radioOperation->band, radioOperation->channelWidth,
+        /* RDKB-66296: on a DFS primary channel, the driver only supports scanning the
+         * single control channel at a time. Requesting the full 40/80/160MHz
+         * subchannel block (as produced by get_on_channel_scan_list()) makes the
+         * kernel/driver reject the whole TRIGGER_SCAN with "Device or resource busy".
+         * Restrict ONCHAN to the primary channel only when it is DFS. */
+        bool is_dfs_primary_channel = (radioOperation->band == WIFI_FREQUENCY_5L_BAND ||
+                                           radioOperation->band == WIFI_FREQUENCY_5H_BAND ||
+                                           radioOperation->band == WIFI_FREQUENCY_5_BAND) &&
+            (is_5g_20M_channel_in_dfs(radioOperation->channel) ||
+                radioOperation->channelWidth == WIFI_CHANNELBANDWIDTH_160MHZ);
+
+        if (is_dfs_primary_channel ||
+            get_on_channel_scan_list(radioOperation->band, radioOperation->channelWidth,
                 radioOperation->channel, channels, &num_channels) != 0) {
             num_channels = 1;
             channels[0] = radioOperation->channel;
-        } else {
-            if (get_non_operational_channel_list(args->radio_index, (unsigned int *)channels,
-                    num_channels, nop_chan_list, &nop_chan_count, mon_data,
-                    radioOperation->band) != RETURN_OK) {
-                wifi_util_error_print(WIFI_MON,
-                    "%s:%d get_non_operational_channel_list failed for radio: %d\n", __func__,
-                    __LINE__, args->radio_index);
-            }
-            // Filter out channels that are in the NOP/CAC started list
-            for (int chan_idx = 0; chan_idx < num_channels; chan_idx++) {
-                is_nop_chan = 0;
-                for (unsigned int nop_idx = 0; nop_idx < nop_chan_count; nop_idx++) {
-                    if (channels[chan_idx] == nop_chan_list[nop_idx]) {
-                        is_nop_chan = 1;
-                        break;
-                    }
-                }
-                // Only keep channels that are NOT in NOP/CAC state
-                if (is_nop_chan == 0) {
-                    updated_channels[ch_count] = channels[chan_idx];
-                    ch_count++;
-                }
-            }
-            if (ch_count == 0 || ch_count > MAX_CHANNELS) {
-                wifi_util_info_print(WIFI_MON,
-                    "%s:%d on-channel scan could not be executed because the channel is currently "
-                    "in a NOP/CAC state for radio %d\n",
-                    __func__, __LINE__, args->radio_index);
-                return RETURN_ERR;
-            }
-            memcpy(channels, updated_channels, sizeof(int) * ch_count);
-            num_channels = ch_count;
         }
+
+        /* Defer (instead of forwarding to the HAL/driver) while any channel about to
+         * be scanned - including the single DFS primary channel above - is still
+         * under CAC or sitting in the post-radar NOP window. */
+        if (get_non_operational_channel_list(args->radio_index, (unsigned int *)channels,
+                num_channels, nop_chan_list, &nop_chan_count, mon_data,
+                radioOperation->band) != RETURN_OK) {
+            wifi_util_error_print(WIFI_MON,
+                "%s:%d get_non_operational_channel_list failed for radio: %d\n", __func__,
+                __LINE__, args->radio_index);
+        }
+        // Filter out channels that are in the NOP/CAC started list
+        for (int chan_idx = 0; chan_idx < num_channels; chan_idx++) {
+            is_nop_chan = 0;
+            for (unsigned int nop_idx = 0; nop_idx < nop_chan_count; nop_idx++) {
+                if (channels[chan_idx] == nop_chan_list[nop_idx]) {
+                    is_nop_chan = 1;
+                    break;
+                }
+            }
+            // Only keep channels that are NOT in NOP/CAC state
+            if (is_nop_chan == 0) {
+                updated_channels[ch_count] = channels[chan_idx];
+                ch_count++;
+            }
+        }
+        if (ch_count == 0 || ch_count > MAX_CHANNELS) {
+            wifi_util_info_print(WIFI_MON,
+                "%s:%d on-channel scan could not be executed because the channel is currently "
+                "in a NOP/CAC state for radio %d\n",
+                __func__, __LINE__, args->radio_index);
+            return RETURN_ERR;
+        }
+        memcpy(channels, updated_channels, sizeof(int) * ch_count);
+        num_channels = ch_count;
     } else if (args->scan_mode == WIFI_RADIO_SCAN_MODE_FULL) {
 
         wifi_cap = getRadioCapability(args->radio_index);
