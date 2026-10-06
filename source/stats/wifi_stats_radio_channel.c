@@ -1172,10 +1172,15 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         (unsigned int *)channels);
     clock_gettime(CLOCK_MONOTONIC, &(mon_data->last_scan_time[args->radio_index]));
     if (ret != RETURN_OK) {
+        bool retry_immediately = !is_dfs_home_radio(radioOperation);
         mon_data->scan_trigger_retries[args->radio_index]++;
         mon_data->scan_failed[args->radio_index] = true;
+        /*
+         * start_immediately bypasses the interval. Preserve the existing
+         * immediate retry for non-DFS scans, but honor the DFS backoff.
+         */
         scheduler_add_timer_task(mon_data->sched, FALSE, &id, retrigger_neighbor_scan, c_elem,
-            get_neighbor_scan_retry_interval(args->radio_index), 1, TRUE);
+            get_neighbor_scan_retry_interval(args->radio_index), 1, retry_immediately);
         c_elem->u.radio_channel_neighbor_data.scan_trigger_task_id = id;
         wifi_util_dbg_print(WIFI_MON,
             "%s:%d  Retry (%d) to trigger scan for scan mode %d radio index %d\n", __func__,
