@@ -33,7 +33,48 @@
 #define RADIO_SCAN_MAX_RESULTS_RETRIES_FULL_SCAN 150 //30 seconds
 #define RADIO_SCAN_MAX_RESULTS_RETRIES_ON_AND_OFF_SCAN 35 //7 seconds
 #define NEIGHBOR_SCAN_RETRY_INTERVAL 100 //100ms
+#define DFS_NEIGHBOR_SCAN_RETRY_INTERVAL 11000 // driver DFS scan interval plus margin
 #define NEIGHBOR_SCAN_MAX_RETRY 10
+
+static bool is_5g_radio_band(wifi_freq_bands_t band)
+{
+    return band == WIFI_FREQUENCY_5L_BAND ||
+        band == WIFI_FREQUENCY_5H_BAND ||
+        band == WIFI_FREQUENCY_5_BAND;
+}
+
+static bool is_dfs_home_radio(const wifi_radio_operationParam_t *radio_operation)
+{
+    int channels[MAX_CHANNELS] = { 0 };
+    int num_channels = 0;
+
+    if (radio_operation == NULL || !is_5g_radio_band(radio_operation->band)) {
+        return false;
+    }
+
+    if (get_on_channel_scan_list(radio_operation->band, radio_operation->channelWidth,
+            radio_operation->channel, channels, &num_channels) == 0) {
+        for (int channel_index = 0; channel_index < num_channels; channel_index++) {
+            if (is_5g_20M_channel_in_dfs(channels[channel_index])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    return is_5g_20M_channel_in_dfs(radio_operation->channel);
+}
+
+static unsigned int get_neighbor_scan_retry_interval(int radio_index)
+{
+    wifi_radio_operationParam_t *radio_operation = getRadioOperationParam(radio_index);
+
+    if (is_dfs_home_radio(radio_operation)) {
+        return DFS_NEIGHBOR_SCAN_RETRY_INTERVAL;
+    }
+
+    return NEIGHBOR_SCAN_RETRY_INTERVAL;
+}
 
 int validate_radio_channel_args(wifi_mon_stats_args_t *args)
 {
@@ -572,7 +613,7 @@ int retrigger_neighbor_scan(void *arg)
             mon_data->scan_trigger_retries[args->radio_index]++;
             mon_data->scan_failed[args->radio_index] = true;
             scheduler_add_timer_task(mon_data->sched, FALSE, &id, retrigger_neighbor_scan, c_elem,
-                NEIGHBOR_SCAN_RETRY_INTERVAL, 1, FALSE);
+                get_neighbor_scan_retry_interval(args->radio_index), 1, FALSE);
             c_elem->u.radio_channel_neighbor_data.scan_trigger_task_id = id;
             wifi_util_dbg_print(WIFI_MON,
                 "%s:%d  Retry (%d) to trigger scan for scan mode %d radio index %d\n", __func__,
@@ -643,7 +684,7 @@ int check_scan_complete_read_results(void *arg)
                 mon_data->scan_trigger_retries[args->radio_index]++;
                 mon_data->scan_failed[args->radio_index] = true;
                 scheduler_add_timer_task(mon_data->sched, FALSE, &id, retrigger_neighbor_scan,
-                    c_elem, NEIGHBOR_SCAN_RETRY_INTERVAL, 1, FALSE);
+                    c_elem, get_neighbor_scan_retry_interval(args->radio_index), 1, FALSE);
                 c_elem->u.radio_channel_neighbor_data.scan_trigger_task_id = id;
                 wifi_util_dbg_print(WIFI_MON,
                     "%s:%d  Retry (%d) to trigger scan for scan mode %d radio index %d\n", __func__,
@@ -793,7 +834,7 @@ int check_scan_complete_read_results(void *arg)
     return RETURN_OK;
 }
 
-// Function will return the list of channels that are in NOP/CAC start state
+// Function will return the requested channels that are in NOP/CAC start state
 int get_non_operational_channel_list(int radio_index, unsigned int *input_channels,
     unsigned int input_channel_count, int *nop_channels_list, unsigned int *nop_channel_count,
     wifi_monitor_t *mon_data, wifi_freq_bands_t band)
@@ -812,21 +853,50 @@ int get_non_operational_channel_list(int radio_index, unsigned int *input_channe
 
     *nop_channel_count = 0;
 
-    for (unsigned int j = 0; j < MAX_CHANNELS; j++) {
-        if ((band == WIFI_FREQUENCY_5L_BAND || band == WIFI_FREQUENCY_5H_BAND ||
-                band == WIFI_FREQUENCY_5_BAND) &&
-            (mon_data->channel_map[radio_index][j].ch_state == CHAN_STATE_DFS_NOP_START ||
-                mon_data->channel_map[radio_index][j].ch_state == CHAN_STATE_DFS_CAC_START)) {
-            wifi_util_dbg_print(WIFI_MON, "%s:%d Channel %d is in %d\n", __func__, __LINE__,
-                mon_data->channel_map[radio_index][j].ch_number,
-                mon_data->channel_map[radio_index][j].ch_state);
-            nop_channels_list[count++] = mon_data->channel_map[radio_index][j].ch_number;
+    for (unsigned int input_index = 0; input_index < input_channel_count; input_index++) {
+        bool channel_found = false;
+
+        for (unsigned int map_index = 0; map_index < MAX_CHANNELS; map_index++) {
+            wifi_channelMap_t *channel_map =
+                &mon_data->channel_map[radio_index][map_index];
+
+            if (channel_map->ch_number == 0) {
+                break;
+            }
+
+            if (channel_map->ch_number != (int)input_channels[input_index]) {
+                continue;
+            }
+
+            channel_found = true;
+            if ((band == WIFI_FREQUENCY_5L_BAND || band == WIFI_FREQUENCY_5H_BAND ||
+                    band == WIFI_FREQUENCY_5_BAND) &&
+                (channel_map->ch_state == CHAN_STATE_DFS_NOP_START ||
+                    channel_map->ch_state == CHAN_STATE_DFS_CAC_START)) {
+                if (count >= MAX_CHANNELS) {
+                    wifi_util_error_print(WIFI_MON,
+                        "%s:%d too many non-operational channels for radio: %d\n", __func__,
+                        __LINE__, radio_index);
+                    return RETURN_ERR;
+                }
+                wifi_util_dbg_print(WIFI_MON, "%s:%d Requested channel %d is in %d\n",
+                    __func__, __LINE__, channel_map->ch_number, channel_map->ch_state);
+                nop_channels_list[count++] = channel_map->ch_number;
+            }
+            break;
+        }
+
+        if (!channel_found) {
+            wifi_util_error_print(WIFI_MON,
+                "%s:%d requested channel %u is absent from the channel map for radio: %d\n",
+                __func__, __LINE__, input_channels[input_index], radio_index);
+            return RETURN_ERR;
         }
     }
 
     *nop_channel_count = count;
-    wifi_util_dbg_print(WIFI_MON, "%s:%d Found %d NOP-active channels\n", __func__, __LINE__,
-        count);
+    wifi_util_dbg_print(WIFI_MON, "%s:%d Found %d requested NOP/CAC channels\n", __func__,
+        __LINE__, count);
 
     return RETURN_OK;
 }
@@ -899,11 +969,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
          * subchannel block (as produced by get_on_channel_scan_list()) makes the
          * kernel/driver reject the whole TRIGGER_SCAN with "Device or resource busy".
          * Restrict ONCHAN to the primary channel only when it is DFS. */
-        bool is_dfs_primary_channel = (radioOperation->band == WIFI_FREQUENCY_5L_BAND ||
-                                           radioOperation->band == WIFI_FREQUENCY_5H_BAND ||
-                                           radioOperation->band == WIFI_FREQUENCY_5_BAND) &&
-            (is_5g_20M_channel_in_dfs(radioOperation->channel) ||
-                radioOperation->channelWidth == WIFI_CHANNELBANDWIDTH_160MHZ);
+        bool is_dfs_primary_channel = is_dfs_home_radio(radioOperation);
 
         if (is_dfs_primary_channel ||
             get_on_channel_scan_list(radioOperation->band, radioOperation->channelWidth,
@@ -921,6 +987,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
             wifi_util_error_print(WIFI_MON,
                 "%s:%d get_non_operational_channel_list failed for radio: %d\n", __func__,
                 __LINE__, args->radio_index);
+            return RETURN_ERR;
         }
         // Filter out channels that are in the NOP/CAC started list
         for (int chan_idx = 0; chan_idx < num_channels; chan_idx++) {
@@ -958,18 +1025,13 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
             return RETURN_ERR;
         }
         // dont run offchan scan if device current using dfs channel
-        if (radioOperation->band == WIFI_FREQUENCY_5L_BAND ||
-            radioOperation->band == WIFI_FREQUENCY_5H_BAND ||
-            radioOperation->band == WIFI_FREQUENCY_5_BAND) {
-            if (is_5g_20M_channel_in_dfs(radioOperation->channel) ||
-                radioOperation->channelWidth == WIFI_CHANNELBANDWIDTH_160MHZ) {
-                wifi_util_dbg_print(WIFI_MON,
-                    "%s:%d  full channel scan only executed on current channel duo to DFS channel "
-                    "in use for radio index %d\n",
-                    __func__, __LINE__, args->radio_index);
-                num_channels = 1;
-                channels[0] = radioOperation->channel;
-            }
+        if (is_dfs_home_radio(radioOperation)) {
+            wifi_util_dbg_print(WIFI_MON,
+                "%s:%d  full channel scan only executed on current channel due to DFS channel "
+                "in use for radio index %d\n",
+                __func__, __LINE__, args->radio_index);
+            num_channels = 1;
+            channels[0] = radioOperation->channel;
         }
 
     } else if (args->scan_mode == WIFI_RADIO_SCAN_MODE_SELECT_CHANNELS) {
@@ -985,17 +1047,12 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
             return RETURN_ERR;
         }
         // dont run offchan scan if device current using dfs channel
-        if (radioOperation->band == WIFI_FREQUENCY_5L_BAND ||
-            radioOperation->band == WIFI_FREQUENCY_5H_BAND ||
-            radioOperation->band == WIFI_FREQUENCY_5_BAND) {
-            if (is_5g_20M_channel_in_dfs(radioOperation->channel) ||
-                radioOperation->channelWidth == WIFI_CHANNELBANDWIDTH_160MHZ) {
-                wifi_util_dbg_print(WIFI_MON,
-                    "%s:%d  off channel scan not executed duo to DFS channel in use for radio "
-                    "index %d\n",
-                    __func__, __LINE__, args->radio_index);
-                return RETURN_OK;
-            }
+        if (is_dfs_home_radio(radioOperation)) {
+            wifi_util_dbg_print(WIFI_MON,
+                "%s:%d  off channel scan not executed due to DFS channel in use for radio "
+                "index %d\n",
+                __func__, __LINE__, args->radio_index);
+            return RETURN_OK;
         }
         // Fill on-channel scan list
         if (get_on_channel_scan_list(radioOperation->band, radioOperation->channelWidth,
@@ -1013,6 +1070,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
             wifi_util_error_print(WIFI_MON,
                 "%s:%d get_non_operational_channel_list failed for radio: %d\n", __func__, __LINE__,
                 args->radio_index);
+            return RETURN_ERR;
         }
         // skip on-channel scan and non-operational channel list
         for (int i = 0; i < args->channel_list.num_channels; i++) {
@@ -1076,13 +1134,8 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         }
         if (args->scan_mode == WIFI_RADIO_SCAN_MODE_ONCHAN) {
             // make sure dwell time is less than 20ms if DFS channel
-            if (radioOperation->band == WIFI_FREQUENCY_5L_BAND ||
-                radioOperation->band == WIFI_FREQUENCY_5H_BAND ||
-                radioOperation->band == WIFI_FREQUENCY_5_BAND) {
-                if (is_5g_20M_channel_in_dfs(radioOperation->channel) ||
-                    radioOperation->channelWidth == WIFI_CHANNELBANDWIDTH_160MHZ) {
-                    dwell_time = 20;
-                }
+            if (is_dfs_home_radio(radioOperation)) {
+                dwell_time = 20;
             }
         }
     }
@@ -1115,7 +1168,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         mon_data->scan_trigger_retries[args->radio_index]++;
         mon_data->scan_failed[args->radio_index] = true;
         scheduler_add_timer_task(mon_data->sched, FALSE, &id, retrigger_neighbor_scan, c_elem,
-            NEIGHBOR_SCAN_RETRY_INTERVAL, 1, TRUE);
+            get_neighbor_scan_retry_interval(args->radio_index), 1, TRUE);
         c_elem->u.radio_channel_neighbor_data.scan_trigger_task_id = id;
         wifi_util_dbg_print(WIFI_MON,
             "%s:%d  Retry (%d) to trigger scan for scan mode %d radio index %d\n", __func__,
