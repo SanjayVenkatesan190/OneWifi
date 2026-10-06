@@ -75,9 +75,9 @@ static unsigned int get_neighbor_scan_retry_interval(int radio_index)
     wifi_util_dbg_print(WIFI_MON,
         "%s:%d radio:%d band:%d channel:%d width:%d dfs:%d retry_interval:%u\n",
         __func__, __LINE__, radio_index,
-        radio_operation != NULL ? radio_operation->band : -1,
-        radio_operation != NULL ? radio_operation->channel : -1,
-        radio_operation != NULL ? radio_operation->channelWidth : -1,
+        radio_operation != NULL ? (int)radio_operation->band : -1,
+        radio_operation != NULL ? (int)radio_operation->channel : -1,
+        radio_operation != NULL ? (int)radio_operation->channelWidth : -1,
         is_dfs, retry_interval);
 
     return retry_interval;
