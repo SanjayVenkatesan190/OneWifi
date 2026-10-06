@@ -68,19 +68,12 @@ static bool is_dfs_home_radio(const wifi_radio_operationParam_t *radio_operation
 static unsigned int get_neighbor_scan_retry_interval(int radio_index)
 {
     wifi_radio_operationParam_t *radio_operation = getRadioOperationParam(radio_index);
-    bool is_dfs = is_dfs_home_radio(radio_operation);
-    unsigned int retry_interval = is_dfs ?
-        DFS_NEIGHBOR_SCAN_RETRY_INTERVAL : NEIGHBOR_SCAN_RETRY_INTERVAL;
 
-    wifi_util_dbg_print(WIFI_MON,
-        "%s:%d radio:%d band:%d channel:%d width:%d dfs:%d retry_interval:%u\n",
-        __func__, __LINE__, radio_index,
-        radio_operation != NULL ? radio_operation->band : -1,
-        radio_operation != NULL ? radio_operation->channel : -1,
-        radio_operation != NULL ? radio_operation->channelWidth : -1,
-        is_dfs, retry_interval);
+    if (is_dfs_home_radio(radio_operation)) {
+        return DFS_NEIGHBOR_SCAN_RETRY_INTERVAL;
+    }
 
-    return retry_interval;
+    return NEIGHBOR_SCAN_RETRY_INTERVAL;
 }
 
 int validate_radio_channel_args(wifi_mon_stats_args_t *args)
