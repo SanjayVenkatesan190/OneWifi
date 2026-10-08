@@ -475,7 +475,10 @@ int stop_radio_channel_neighbor_scheduler_tasks(wifi_mon_collector_element_t *c_
     scheduler_cancel_timer_task(mon_data->sched, c_elem->u.radio_channel_neighbor_data.scan_complete_task_id);
     scheduler_cancel_timer_task(mon_data->sched, c_elem->u.radio_channel_neighbor_data.scan_trigger_task_id);
 
-    radio_index = c_elem->args != NULL ? c_elem->args->radio_index : -1;
+    radio_index = -1;
+    if (c_elem->args != NULL) {
+        radio_index = (int)c_elem->args->radio_index;
+    }
     if (radio_index >= 0 && radio_index < MAX_NUM_RADIOS) {
         if (mon_data->scan_retry_task_id[radio_index] ==
                 c_elem->u.radio_channel_neighbor_data.scan_trigger_task_id) {
