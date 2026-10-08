@@ -173,6 +173,35 @@ static int schedule_neighbor_scan_retry(wifi_monitor_t *mon_data,
     return RETURN_OK;
 }
 
+static bool cache_last_onchannel_neighbor_results(wifi_monitor_t *mon_data, int radio_index)
+{
+    wifi_neighbor_ap2_t *neighbor_results = NULL;
+    wifi_neighbor_ap2_t *previous_results;
+    unsigned int result_count = 0;
+    int ret;
+
+    ret = wifi_getNeighboringWiFiStatus(radio_index, &neighbor_results, &result_count);
+    if (ret != RETURN_OK) {
+        free(neighbor_results);
+        wifi_util_dbg_print(WIFI_MON,
+            "%s:%d no cached neighbor results for radio:%d ret:%d errno:%d\n",
+            __func__, __LINE__, radio_index, ret, errno);
+        return false;
+    }
+
+    pthread_mutex_lock(&mon_data->data_lock);
+    previous_results = mon_data->neighbor_scan_cfg.pResult_onchannel[radio_index];
+    mon_data->neighbor_scan_cfg.pResult_onchannel[radio_index] = neighbor_results;
+    mon_data->neighbor_scan_cfg.resultCountPerRadio_onchannel[radio_index] = result_count;
+    pthread_mutex_unlock(&mon_data->data_lock);
+
+    free(previous_results);
+    wifi_util_info_print(WIFI_MON,
+        "%s:%d using last neighbor results for radio:%d count:%u after transient scan failure\n",
+        __func__, __LINE__, radio_index, result_count);
+    return true;
+}
+
 int validate_radio_channel_args(wifi_mon_stats_args_t *args)
 {
     if (args == NULL) {
@@ -1031,6 +1060,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
     int bytes_written = 0;
     int count = 0;
     int id = 0;
+    int scan_errno = 0;
     int on_chan_list[MAX_CHANNELS] = {0};
     int nop_chan_list[MAX_CHANNELS] ={0};
     int is_nop_chan = 0;
@@ -1287,8 +1317,26 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
     int private_vap_index = getPrivateApFromRadioIndex(args->radio_index);
     ret = wifi_startNeighborScan(private_vap_index, args->scan_mode, dwell_time, num_channels,
         (unsigned int *)channels);
+    scan_errno = errno;
     clock_gettime(CLOCK_MONOTONIC, &(mon_data->last_scan_time[args->radio_index]));
     if (ret != RETURN_OK) {
+        if (args->scan_mode == WIFI_RADIO_SCAN_MODE_ONCHAN &&
+            (ret == WIFI_HAL_NOT_READY || scan_errno == EAGAIN || scan_errno == EBUSY) &&
+            cache_last_onchannel_neighbor_results(mon_data, args->radio_index)) {
+            mon_data->scan_status[args->radio_index] = 0;
+            mon_data->scan_results_retries[args->radio_index] = 0;
+            mon_data->scan_trigger_retries[args->radio_index] = 0;
+            mon_data->scan_failed[args->radio_index] = false;
+            clear_scan_retry_pending(mon_data, c_elem);
+            if (execute_radio_channel_stats_api(c_elem, mon_data) != RETURN_OK) {
+                wifi_util_error_print(WIFI_MON,
+                    "%s:%d failed to update radio channel cache after using neighbor results "
+                    "for radio:%d\n",
+                    __func__, __LINE__, args->radio_index);
+            }
+            return RETURN_OK;
+        }
+
         bool retry_immediately = !is_dfs_home_radio(radioOperation);
         mon_data->scan_trigger_retries[args->radio_index]++;
         mon_data->scan_failed[args->radio_index] = true;
