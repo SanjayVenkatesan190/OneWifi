@@ -135,6 +135,8 @@ typedef struct {
     wifi_neighbor_ap2_t * pResult[MAX_NUM_RADIOS];
     ULONG resultCountPerRadio_onchannel[MAX_NUM_RADIOS];
     wifi_neighbor_ap2_t * pResult_onchannel[MAX_NUM_RADIOS];
+    bool onchannel_results_valid[MAX_NUM_RADIOS];
+    int onchannel_cache_channel[MAX_NUM_RADIOS];
     //off-chan results
     ULONG resultCountPerRadio_offchannel[MAX_NUM_RADIOS][MAX_CHANNELS];
     wifi_neighbor_ap2_t * pResult_offchannel[MAX_NUM_RADIOS][MAX_CHANNELS];

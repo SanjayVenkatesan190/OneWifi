@@ -175,30 +175,37 @@ static int schedule_neighbor_scan_retry(wifi_monitor_t *mon_data,
 
 static bool cache_last_onchannel_neighbor_results(wifi_monitor_t *mon_data, int radio_index)
 {
-    wifi_neighbor_ap2_t *neighbor_results = NULL;
-    wifi_neighbor_ap2_t *previous_results;
-    unsigned int result_count = 0;
-    int ret;
+    wifi_radio_operationParam_t *radio_operation;
+    unsigned int result_count;
+    int cached_channel;
 
-    ret = wifi_getNeighboringWiFiStatus(radio_index, &neighbor_results, &result_count);
-    if (ret != RETURN_OK) {
-        free(neighbor_results);
+    radio_operation = getRadioOperationParam(radio_index);
+    if (radio_operation == NULL) {
         wifi_util_dbg_print(WIFI_MON,
-            "%s:%d no cached neighbor results for radio:%d ret:%d errno:%d\n",
-            __func__, __LINE__, radio_index, ret, errno);
+            "%s:%d no radio operation for cached neighbor results radio:%d\n",
+            __func__, __LINE__, radio_index);
         return false;
     }
 
     pthread_mutex_lock(&mon_data->data_lock);
-    previous_results = mon_data->neighbor_scan_cfg.pResult_onchannel[radio_index];
-    mon_data->neighbor_scan_cfg.pResult_onchannel[radio_index] = neighbor_results;
-    mon_data->neighbor_scan_cfg.resultCountPerRadio_onchannel[radio_index] = result_count;
+    result_count = mon_data->neighbor_scan_cfg.resultCountPerRadio_onchannel[radio_index];
+    cached_channel = mon_data->neighbor_scan_cfg.onchannel_cache_channel[radio_index];
+    bool cache_valid = mon_data->neighbor_scan_cfg.onchannel_results_valid[radio_index];
     pthread_mutex_unlock(&mon_data->data_lock);
 
-    free(previous_results);
+    if (!cache_valid || cached_channel != (int)radio_operation->channel) {
+        wifi_util_dbg_print(WIFI_MON,
+            "%s:%d no matching cached neighbor results for radio:%d current_channel:%d "
+            "cached_channel:%d valid:%d\n",
+            __func__, __LINE__, radio_index, radio_operation->channel, cached_channel,
+            cache_valid);
+        return false;
+    }
+
     wifi_util_info_print(WIFI_MON,
-        "%s:%d using last neighbor results for radio:%d count:%u after transient scan failure\n",
-        __func__, __LINE__, radio_index, result_count);
+        "%s:%d using last neighbor results for radio:%d channel:%d count:%u after transient "
+        "scan failure\n",
+        __func__, __LINE__, radio_index, radio_operation->channel, result_count);
     return true;
 }
 
@@ -906,6 +913,13 @@ int check_scan_complete_read_results(void *arg)
         temp_neigh_stats = neighscan_stats_data->pResult_onchannel[args->radio_index];
         neighscan_stats_data->pResult_onchannel[args->radio_index] = neigh_stats;
         neighscan_stats_data->resultCountPerRadio_onchannel[args->radio_index] = ap_count;
+        wifi_radio_operationParam_t *radio_operation =
+            getRadioOperationParam(args->radio_index);
+        if (radio_operation != NULL) {
+            neighscan_stats_data->onchannel_cache_channel[args->radio_index] =
+                (int)radio_operation->channel;
+            neighscan_stats_data->onchannel_results_valid[args->radio_index] = true;
+        }
         if (temp_neigh_stats != NULL) {
             free(temp_neigh_stats);
             temp_neigh_stats = NULL;
