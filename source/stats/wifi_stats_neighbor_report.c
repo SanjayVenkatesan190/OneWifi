@@ -121,6 +121,26 @@ int copy_neighbor_ap_stats_from_cache(wifi_mon_provider_element_t *p_elem, void 
             results = neighscan_stats_data->pResult[args->radio_index];
             ap_count = neighscan_stats_data->resultCountPerRadio[args->radio_index];
         } else if (args->scan_mode == WIFI_RADIO_SCAN_MODE_ONCHAN) {
+            wifi_radio_operationParam_t *radio_operation =
+                getRadioOperationParam(args->radio_index);
+            if (radio_operation == NULL) {
+                wifi_util_error_print(WIFI_MON,
+                    "%s:%d no radio operation for on-channel cache radio:%d\n",
+                    __func__, __LINE__, args->radio_index);
+                pthread_mutex_unlock(&mon_data->data_lock);
+                return RETURN_ERR;
+            }
+            if (!neighscan_stats_data->onchannel_results_valid[args->radio_index] ||
+                neighscan_stats_data->onchannel_cache_channel[args->radio_index] !=
+                    (int)radio_operation->channel) {
+                *stats = NULL;
+                *stat_array_size = 0;
+                wifi_util_dbg_print(WIFI_MON,
+                    "%s:%d no current on-channel cache for radio:%d channel:%d\n",
+                    __func__, __LINE__, args->radio_index, radio_operation->channel);
+                pthread_mutex_unlock(&mon_data->data_lock);
+                return RETURN_OK;
+            }
             results = neighscan_stats_data->pResult_onchannel[args->radio_index];
             ap_count = neighscan_stats_data->resultCountPerRadio_onchannel[args->radio_index];
         }
@@ -149,4 +169,3 @@ int copy_neighbor_ap_stats_from_cache(wifi_mon_provider_element_t *p_elem, void 
     return RETURN_OK;
 
 }
-
