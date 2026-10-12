@@ -209,6 +209,58 @@ static bool cache_last_onchannel_neighbor_results(wifi_monitor_t *mon_data, int 
     return true;
 }
 
+static bool cache_onchannel_neighbor_results_from_shared_store(wifi_monitor_t *mon_data,
+    int radio_index)
+{
+    wifi_radio_operationParam_t *radio_operation;
+    wifi_neighbor_ap2_t *shared_results = NULL;
+    wifi_neighbor_ap2_t *previous_results;
+    UINT shared_count = 0;
+    int ret;
+
+    radio_operation = getRadioOperationParam(radio_index);
+    if (radio_operation == NULL) {
+        return false;
+    }
+
+    ret = wifi_getNeighboringWiFiStatus(radio_index, &shared_results, &shared_count);
+    if (ret != RETURN_OK || shared_results == NULL || shared_count == 0) {
+        free(shared_results);
+        wifi_util_dbg_print(WIFI_MON,
+            "%s:%d no shared neighbor results for radio:%d channel:%d ret:%d count:%u\n",
+            __func__, __LINE__, radio_index, radio_operation->channel, ret, shared_count);
+        return false;
+    }
+
+    for (unsigned int result_index = 0; result_index < shared_count; result_index++) {
+        if (shared_results[result_index].ap_Channel != radio_operation->channel) {
+            wifi_util_dbg_print(WIFI_MON,
+                "%s:%d reject shared neighbor results for radio:%d expected_channel:%d "
+                "result_channel:%u\n",
+                __func__, __LINE__, radio_index, radio_operation->channel,
+                shared_results[result_index].ap_Channel);
+            free(shared_results);
+            return false;
+        }
+    }
+
+    pthread_mutex_lock(&mon_data->data_lock);
+    previous_results = mon_data->neighbor_scan_cfg.pResult_onchannel[radio_index];
+    mon_data->neighbor_scan_cfg.pResult_onchannel[radio_index] = shared_results;
+    mon_data->neighbor_scan_cfg.resultCountPerRadio_onchannel[radio_index] = shared_count;
+    mon_data->neighbor_scan_cfg.onchannel_cache_channel[radio_index] =
+        (int)radio_operation->channel;
+    mon_data->neighbor_scan_cfg.onchannel_results_valid[radio_index] = true;
+    pthread_mutex_unlock(&mon_data->data_lock);
+
+    free(previous_results);
+    wifi_util_info_print(WIFI_MON,
+        "%s:%d using available shared/HAL neighbor results for radio:%d channel:%d "
+        "count:%u before scan\n",
+        __func__, __LINE__, radio_index, radio_operation->channel, shared_count);
+    return true;
+}
+
 int validate_radio_channel_args(wifi_mon_stats_args_t *args)
 {
     if (args == NULL) {
@@ -1084,6 +1136,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
     int onchan_num_channels = 0;
     int new_num_channels = 0;
     int updated_channels[MAX_CHANNELS] = {0};
+    bool is_dfs_primary_channel = false;
     wifi_mon_stats_args_t *args = NULL;
 
     if (c_elem == NULL) {
@@ -1137,7 +1190,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
          * subchannel block (as produced by get_on_channel_scan_list()) makes the
          * kernel/driver reject the whole TRIGGER_SCAN with "Device or resource busy".
          * Restrict ONCHAN to the primary channel only when it is DFS. */
-        bool is_dfs_primary_channel = is_dfs_home_radio(radioOperation);
+        is_dfs_primary_channel = is_dfs_home_radio(radioOperation);
 
         if (is_dfs_primary_channel ||
             get_on_channel_scan_list(radioOperation->band, radioOperation->channelWidth,
@@ -1288,6 +1341,24 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
         wifi_util_error_print(WIFI_MON, "%s:%d invalid number of channels\n", __func__, __LINE__);
         return RETURN_ERR;
     }
+
+    if (args->scan_mode == WIFI_RADIO_SCAN_MODE_ONCHAN &&
+        is_dfs_primary_channel &&
+        cache_onchannel_neighbor_results_from_shared_store(mon_data, args->radio_index)) {
+        mon_data->scan_status[args->radio_index] = 0;
+        mon_data->scan_results_retries[args->radio_index] = 0;
+        mon_data->scan_trigger_retries[args->radio_index] = 0;
+        mon_data->scan_failed[args->radio_index] = false;
+        clear_scan_retry_pending(mon_data, c_elem);
+        if (execute_radio_channel_stats_api(c_elem, mon_data) != RETURN_OK) {
+            wifi_util_error_print(WIFI_MON,
+                "%s:%d failed to update radio channel cache after using shared neighbor "
+                "results for radio:%d\n",
+                __func__, __LINE__, args->radio_index);
+        }
+        return RETURN_OK;
+    }
+
     if (args->scan_mode == WIFI_RADIO_SCAN_MODE_FULL || args->scan_mode == WIFI_RADIO_SCAN_MODE_SELECT_CHANNELS ) {
         dwell_time = args->dwell_time;
         if (radioOperation->band == WIFI_FREQUENCY_6_BAND) {
