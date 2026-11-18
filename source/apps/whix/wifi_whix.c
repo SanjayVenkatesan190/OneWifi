@@ -1929,7 +1929,8 @@ static void config_radio_channel_util(wifi_monitor_data_t *data)
     whix_common_config_to_monitor_queue(data, true);
 
     data->u.mon_stats_config.data_type = mon_stats_type_radio_channel_stats;
-    data->u.mon_stats_config.args.scan_mode = WIFI_RADIO_SCAN_MODE_ONCHAN;
+    /* Survey read only: an on-channel scan is rejected on a DFS home channel */
+    data->u.mon_stats_config.args.scan_mode = WIFI_RADIO_SCAN_MODE_NONE;
     data->u.mon_stats_config.delay_provider_sec = WIFI_CHANUTIL_PROVIDER_DELAY_SEC;
     /* Request to get channel utilization */
     data->u.mon_stats_config.args.app_info = whix_app_event_type_chan_util;
@@ -1951,7 +1952,8 @@ static void config_radio_channel_stats(wifi_monitor_data_t *data)
 
     /* Request to collect other channel stats */
     data->u.mon_stats_config.data_type = mon_stats_type_radio_channel_stats;
-    data->u.mon_stats_config.args.scan_mode = WIFI_RADIO_SCAN_MODE_ONCHAN;
+    /* Survey read only: an on-channel scan is rejected on a DFS home channel */
+    data->u.mon_stats_config.args.scan_mode = WIFI_RADIO_SCAN_MODE_NONE;
     data->u.mon_stats_config.delay_provider_sec = WIFI_CHANUTIL_PROVIDER_DELAY_SEC;
     data->u.mon_stats_config.args.app_info = whix_app_event_type_chan_stats;
 
